@@ -8,8 +8,8 @@ import { parseGitHubUrl } from '../lib/api';
 const Github = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
     viewBox="0 0 24 24"
-    width="24"
-    height="24"
+    width="20"
+    height="20"
     stroke="currentColor"
     strokeWidth="2"
     fill="none"
@@ -36,7 +36,6 @@ export default function LandingPage() {
       return;
     }
 
-    // Navigate to the dynamic dashboard route
     router.push(`/dashboard/${parsed.owner}/${parsed.repo}`);
   };
 
@@ -51,30 +50,30 @@ export default function LandingPage() {
   ];
 
   return (
-    <div className="flex-1 flex flex-col justify-center bg-bg-main py-16 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto w-full space-y-10">
+    <div className="flex-1 flex flex-col justify-center bg-[#0B0F19] py-20 px-4 sm:px-6 lg:px-8 text-white min-h-screen">
+      <div className="max-w-3xl mx-auto w-full space-y-8 animate-fadeIn">
         
-        {/* Hero Section */}
+        {/* Logo/Icon & Title Section */}
         <div className="text-center space-y-4">
-          <div className="inline-flex items-center justify-center p-3 rounded-full bg-brand-primary-light text-brand-primary mb-2">
-            <Activity className="w-8 h-8" />
+          <div className="inline-flex items-center justify-center p-3.5 rounded-full bg-[#1E3A8A]/40 text-[#3B82F6] border border-[#3B82F6]/20">
+            <Activity className="w-7 h-7" />
           </div>
-          <h1 className="text-[32px] sm:text-[40px] font-extrabold text-text-heading tracking-tight leading-none">
+          <h1 className="text-[32px] sm:text-[38px] font-extrabold text-white tracking-tight leading-none">
             Developer-focused repository analytics
           </h1>
-          <p className="text-[16px] text-text-secondary max-w-xl mx-auto">
+          <p className="text-[14px] text-[#9CA3AF] max-w-xl mx-auto leading-relaxed">
             Analyze any public GitHub repository instantly. Retrieve stars, forks, detailed commit history graphs, language distributions, contributor lists, and an overall repository health score.
           </p>
         </div>
 
-        {/* Search / Input Form */}
-        <div className="bg-white border border-border-card rounded-[12px] p-6 shadow-soft hover:shadow-hover-card transition-shadow duration-200">
+        {/* Search Box Card */}
+        <div className="bg-white border border-[#E2E8F0] rounded-[12px] p-6 shadow-md">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="repo-url" className="sr-only">GitHub Repository URL</label>
               <div className="relative rounded-md shadow-sm">
                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                  <Search className="h-5 w-5 text-text-muted" aria-hidden="true" />
+                  <Search className="h-5 w-5 text-slate-400" aria-hidden="true" />
                 </div>
                 <input
                   type="text"
@@ -85,14 +84,14 @@ export default function LandingPage() {
                     setInputValue(e.target.value);
                     if (error) setError(null);
                   }}
-                  className="block w-full rounded-lg border border-border-divider py-3 pl-10 pr-3 text-[15px] placeholder-text-muted focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary bg-bg-main/50"
+                  className="block w-full rounded-[8px] border border-slate-200 py-3 pl-10 pr-3 text-[14px] bg-[#E2E8F0]/70 text-slate-800 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   placeholder="Paste GitHub Repository URL or type 'owner/repo'..."
                 />
               </div>
             </div>
 
             {error && (
-              <div className="flex items-start gap-2 text-brand-red text-[13px] bg-red-50/50 p-3 rounded-lg border border-red-100">
+              <div className="flex items-start gap-2 text-red-600 text-[13px] bg-red-50 p-3 rounded-lg border border-red-100">
                 <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                 <span>{error}</span>
               </div>
@@ -100,7 +99,7 @@ export default function LandingPage() {
 
             <button
               type="submit"
-              className="w-full flex items-center justify-center gap-2 px-6 py-3 border border-transparent text-[15px] font-bold rounded-lg text-white bg-brand-primary hover:bg-brand-primary-hover shadow-soft hover:shadow-md transition-all cursor-pointer"
+              className="w-full flex items-center justify-center gap-2 px-6 py-3 text-[14px] font-bold rounded-[8px] text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-sm cursor-pointer"
             >
               Analyze Repository
               <ArrowRight className="w-4 h-4" />
@@ -108,32 +107,35 @@ export default function LandingPage() {
           </form>
         </div>
 
-        {/* Example Repositories Section */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Github className="w-5 h-5 text-text-secondary" />
-            <h2 className="text-[16px] font-semibold text-text-heading">Try these example repositories</h2>
+        {/* Examples Section */}
+        <div className="space-y-4 pt-2">
+          <div className="flex items-center gap-2.5 text-[#E5E7EB]">
+            <Github className="text-[#9CA3AF]" />
+            <h2 className="text-[14px] font-semibold">Try these example repositories</h2>
           </div>
+          
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {exampleRepos.map((repo) => (
-              <button
+              <div
                 key={repo.name}
-                onClick={() => handleExampleSelect(repo.owner, repo.repo)}
-                className="bg-white border border-border-card rounded-[12px] p-5 shadow-soft hover:shadow-hover-card hover:border-brand-primary text-left transition-all duration-200 group flex flex-col justify-between h-44 cursor-pointer"
+                className="bg-white border border-[#E2E8F0] rounded-[12px] p-5 shadow-sm text-left flex flex-col justify-between h-44"
               >
                 <div>
-                  <h3 className="text-[14px] font-bold text-text-heading group-hover:text-brand-primary transition-colors truncate">
+                  <h3 className="text-[14px] font-bold text-slate-400">
                     {repo.name}
                   </h3>
-                  <p className="text-[12px] text-text-secondary mt-1.5 line-clamp-4 font-normal leading-normal">
+                  <p className="text-[12px] text-slate-500 mt-2 line-clamp-4 font-normal leading-relaxed">
                     {repo.desc}
                   </p>
                 </div>
-                <div className="mt-4 flex items-center gap-1 text-[12px] font-bold text-brand-primary group-hover:gap-1.5 transition-all">
+                <button
+                  onClick={() => handleExampleSelect(repo.owner, repo.repo)}
+                  className="mt-3 inline-flex items-center gap-1 text-[12px] font-bold text-blue-600 hover:text-blue-700 cursor-pointer"
+                >
                   Analyze Repo
                   <ArrowRight className="w-3.5 h-3.5" />
-                </div>
-              </button>
+                </button>
+              </div>
             ))}
           </div>
         </div>
