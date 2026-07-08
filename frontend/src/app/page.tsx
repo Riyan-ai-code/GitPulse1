@@ -764,11 +764,11 @@ export default function LandingPage() {
               )}
 
               {activeTab === 'quality' && (
-                <div className="max-w-2xl mx-auto animate-fadeIn">
-                  {loadingAnalysis || !analysis ? (
-                    <Skeleton className="h-[500px]" />
+                <div className="animate-fadeIn">
+                  {loadingAnalysis || !analysis || loadingCommits || !commits ? (
+                    <Skeleton className="h-[260px]" />
                   ) : (
-                    <HealthScore data={analysis} />
+                    <HealthScore data={analysis} commits={commits.recentCommits} />
                   )}
                 </div>
               )}
