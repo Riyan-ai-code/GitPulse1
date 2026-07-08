@@ -214,8 +214,25 @@ export default function LandingPage() {
   // 1. Render Search Landing Page (When no repo is analyzed)
   if (!analyzedRepo) {
     return (
-      <div className="flex-1 flex flex-col justify-center bg-[#0B0F19] py-16 px-4 sm:px-6 lg:px-8 text-white min-h-screen">
-        <div className="max-w-4xl mx-auto w-full space-y-12 animate-fadeIn">
+      <div className="flex-1 flex flex-col justify-center bg-[#0B0F19] py-16 px-4 sm:px-6 lg:px-8 text-white min-h-screen relative">
+        {/* Standalone Landing Header */}
+        <header className="absolute top-4 left-4 right-4 md:top-6 md:left-8 md:right-8 flex items-center justify-between z-10">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 rounded bg-brand-primary-light dark:bg-brand-primary/10 text-brand-primary">
+              <Activity className="w-5 h-5" />
+            </div>
+            <span className="font-bold text-[16px] text-white tracking-tight">GitPulse</span>
+          </div>
+          <button
+            onClick={() => handleExampleSelect('vercel', 'next.js')}
+            className="inline-flex items-center gap-1.5 px-4.5 py-2 border border-slate-800 hover:border-slate-600 rounded-lg bg-slate-900/60 hover:bg-slate-950 text-[13px] font-bold text-white transition-all cursor-pointer shadow-sm"
+          >
+            Go Check It Out
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </header>
+
+        <div className="max-w-4xl mx-auto w-full space-y-12 animate-fadeIn pt-10">
           
           {/* Logo/Icon & Title Section */}
           <div className="text-center space-y-4">
