@@ -73,7 +73,7 @@ export default function LandingPage() {
               <label htmlFor="repo-url" className="sr-only">GitHub Repository URL</label>
               <div className="relative rounded-md shadow-sm">
                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                  <Search className="h-5 w-5 text-slate-400" aria-hidden="true" />
+                  <Search className="h-5 w-5 text-blue-400" aria-hidden="true" />
                 </div>
                 <input
                   type="text"
@@ -84,7 +84,7 @@ export default function LandingPage() {
                     setInputValue(e.target.value);
                     if (error) setError(null);
                   }}
-                  className="block w-full rounded-[8px] border border-slate-200 py-3 pl-10 pr-3 text-[14px] bg-[#E2E8F0]/70 text-slate-800 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="block w-full rounded-[8px] border border-[#3B82F6] py-3 pl-10 pr-3 text-[14px] bg-[#EFF6FF]/60 text-slate-800 placeholder-slate-400 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
                   placeholder="Paste GitHub Repository URL or type 'owner/repo'..."
                 />
               </div>
@@ -99,9 +99,9 @@ export default function LandingPage() {
 
             <button
               type="submit"
-              className="w-full flex items-center justify-center gap-2 px-6 py-3 text-[14px] font-bold rounded-[8px] text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-sm cursor-pointer"
+              className="w-full flex items-center justify-center gap-2 px-6 py-3 text-[14px] font-bold rounded-[8px] text-white bg-[#2563EB] hover:bg-[#1D4ED8] transition-colors shadow-sm cursor-pointer"
             >
-              Analyze Repository
+              Analyze Repo
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>
