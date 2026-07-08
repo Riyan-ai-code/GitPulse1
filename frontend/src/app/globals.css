@@ -1,44 +1,95 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-primary: #2563EB;
-  --color-brand-primary-hover: #1D4ED8;
-  --color-brand-primary-light: #DBEAFE;
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-primary-hover: var(--brand-primary-hover);
+  --color-brand-primary-light: var(--brand-primary-light);
   
-  --color-brand-cyan: #06B6D4;
-  --color-brand-emerald: #10B981;
-  --color-brand-amber: #F59E0B;
-  --color-brand-red: #EF4444;
-  --color-brand-purple: #8B5CF6;
+  --color-brand-cyan: var(--brand-cyan);
+  --color-brand-emerald: var(--brand-emerald);
+  --color-brand-amber: var(--brand-amber);
+  --color-brand-red: var(--brand-red);
+  --color-brand-purple: var(--brand-purple);
   
-  --color-bg-main: #F8FAFC;
-  --color-bg-card: #FFFFFF;
-  --color-bg-secondary: #F1F5F9;
-  --color-bg-hover: #F8FAFC;
+  --color-bg-main: var(--bg-main);
+  --color-bg-card: var(--bg-card);
+  --color-bg-sidebar: var(--bg-sidebar);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-bg-hover: var(--bg-hover);
   
-  --color-text-heading: #0F172A;
-  --color-text-primary: #1E293B;
-  --color-text-secondary: #64748B;
-  --color-text-muted: #94A3B8;
+  --color-text-heading: var(--text-heading);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
   
-  --color-border-card: #E2E8F0;
-  --color-border-divider: #CBD5E1;
+  --color-border-card: var(--border-card);
+  --color-border-divider: var(--border-divider);
 
   --shadow-soft: 0 1px 2px rgba(15, 23, 42, 0.05);
   --shadow-hover-card: 0 8px 24px rgba(15, 23, 42, 0.08);
 }
 
 :root {
-  --background: #F8FAFC;
-  --foreground: #1E293B;
+  /* Light Theme Variables */
+  --brand-primary: #2563EB;
+  --brand-primary-hover: #1D4ED8;
+  --brand-primary-light: #DBEAFE;
+  
+  --brand-cyan: #06B6D4;
+  --brand-emerald: #10B981;
+  --brand-amber: #F59E0B;
+  --brand-red: #EF4444;
+  --brand-purple: #8B5CF6;
+  
+  --bg-main: #F8FAFC;
+  --bg-card: #FFFFFF;
+  --bg-sidebar: #FFFFFF;
+  --bg-secondary: #F1F5F9;
+  --bg-hover: #F8FAFC;
+  
+  --text-heading: #0F172A;
+  --text-primary: #1E293B;
+  --text-secondary: #64748B;
+  --text-muted: #94A3B8;
+  
+  --border-card: #E2E8F0;
+  --border-divider: #CBD5E1;
+}
+
+.dark {
+  /* Dark Theme Variables matching the dashboard image */
+  --brand-primary: #3B82F6;
+  --brand-primary-hover: #2563EB;
+  --brand-primary-light: #1E3A8A;
+  
+  --brand-cyan: #06B6D4;
+  --brand-emerald: #10B981;
+  --brand-amber: #F59E0B;
+  --brand-red: #EF4444;
+  --brand-purple: #8B5CF6;
+  
+  --bg-main: #0B0F19;         /* Dark Slate Blue */
+  --bg-card: #111827;         /* Gray-900 */
+  --bg-sidebar: #090D16;      /* Deeper Slate Blue for Sidebar */
+  --bg-secondary: #1F2937;    /* Gray-800 */
+  --bg-hover: #1F2937;
+  
+  --text-heading: #F3F4F6;    /* Gray-100 */
+  --text-primary: #E5E7EB;    /* Gray-200 */
+  --text-secondary: #9CA3AF;  /* Gray-400 */
+  --text-muted: #4B5563;      /* Gray-600 */
+  
+  --border-card: #1F2937;     /* Gray-800 borders */
+  --border-divider: #374151;  /* Gray-700 divider */
 }
 
 body {
-  background-color: var(--background);
-  color: var(--foreground);
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* Custom Scrollbar for modern dashboards */
+/* Custom Scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -47,9 +98,9 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
+  background: var(--border-divider);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94A3B8;
+  background: var(--text-muted);
 }
