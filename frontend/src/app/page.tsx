@@ -1,10 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
 import {
-  Search,
-  AlertCircle,
   Activity,
   ArrowRight,
   LayoutDashboard,
@@ -19,14 +16,17 @@ import {
   Sun,
   Moon,
   RefreshCw,
-  ArrowLeft
+  ArrowLeft,
+  FileText,
+  PieChart,
+  GitFork,
+  AlertCircle
 } from 'lucide-react';
 import {
   fetchRepositoryOverview,
   fetchCommitStats,
   fetchContributors,
-  fetchAnalysis,
-  parseGitHubUrl
+  fetchAnalysis
 } from '../lib/api';
 import {
   RepositoryOverview as RepositoryOverviewType,
@@ -80,7 +80,6 @@ type TabType = 'dashboard' | 'overview' | 'commits' | 'contributors' | 'quality'
 
 export default function LandingPage() {
   const [analyzedRepo, setAnalyzedRepo] = useState<{ owner: string; repo: string } | null>(null);
-  const [inputValue, setInputValue] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   // Dashboard states
@@ -167,33 +166,18 @@ export default function LandingPage() {
     }
   }, [analyzedRepo]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-
-    const parsed = parseGitHubUrl(inputValue);
-    if (!parsed) {
-      setError('Please enter a valid GitHub URL (e.g., https://github.com/facebook/react) or a raw "owner/repo" path.');
-      return;
-    }
-
-    setAnalyzedRepo(parsed);
-  };
-
   const handleExampleSelect = (owner: string, repo: string) => {
     setAnalyzedRepo({ owner, repo });
   };
 
   const resetSearch = () => {
     setAnalyzedRepo(null);
-    setInputValue('');
     setError(null);
     setOverview(null);
     setCommits(null);
     setContributors(null);
     setAnalysis(null);
     setActiveTab('dashboard');
-    // Keep document theme, but reset styling back to landing page
   };
 
   const Skeleton = ({ className = 'h-32' }) => (
@@ -230,68 +214,95 @@ export default function LandingPage() {
   // 1. Render Search Landing Page (When no repo is analyzed)
   if (!analyzedRepo) {
     return (
-      <div className="flex-1 flex flex-col justify-center bg-[#0B0F19] py-20 px-4 sm:px-6 lg:px-8 text-white min-h-screen">
-        <div className="max-w-3xl mx-auto w-full space-y-8 animate-fadeIn">
+      <div className="flex-1 flex flex-col justify-center bg-[#0B0F19] py-16 px-4 sm:px-6 lg:px-8 text-white min-h-screen">
+        <div className="max-w-4xl mx-auto w-full space-y-12 animate-fadeIn">
           
           {/* Logo/Icon & Title Section */}
           <div className="text-center space-y-4">
             <div className="inline-flex items-center justify-center p-3.5 rounded-full bg-[#1E3A8A]/40 text-[#3B82F6] border border-[#3B82F6]/20">
               <Activity className="w-7 h-7" />
             </div>
-            <h1 className="text-[32px] sm:text-[38px] font-extrabold text-white tracking-tight leading-none">
+            <h1 className="text-[32px] sm:text-[40px] font-extrabold text-white tracking-tight leading-none">
               Developer-focused repository analytics
             </h1>
             <p className="text-[14px] text-[#9CA3AF] max-w-xl mx-auto leading-relaxed">
-              Analyze any public GitHub repository instantly. Retrieve stars, forks, detailed commit history graphs, language distributions, contributor lists, and an overall repository health score.
+              Retrieve real-time metrics, commit graphs, language shares, and health checks for public projects. Learn how GitPulse analyzes codebases at a glance.
             </p>
           </div>
 
-          {/* Search Box Card */}
-          <div className="bg-white border border-[#E2E8F0] rounded-[12px] p-6 shadow-md">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label htmlFor="repo-url" className="sr-only">GitHub Repository URL</label>
-                <div className="relative rounded-md shadow-sm">
-                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                    <Search className="h-5 w-5 text-blue-400" aria-hidden="true" />
-                  </div>
-                  <input
-                    type="text"
-                    name="repo-url"
-                    id="repo-url"
-                    value={inputValue}
-                    onChange={(e) => {
-                      setInputValue(e.target.value);
-                      if (error) setError(null);
-                    }}
-                    className="block w-full rounded-[8px] border border-[#3B82F6] py-3 pl-10 pr-3 text-[14px] bg-[#EFF6FF]/60 text-slate-800 placeholder-slate-400 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
-                    placeholder="Paste GitHub Repository URL or type 'owner/repo'..."
-                  />
+          {/* How It Works Section */}
+          <div className="space-y-4">
+            <h2 className="text-[14px] font-bold uppercase tracking-wider text-[#9CA3AF] text-center">
+              How it works & features
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <div className="bg-slate-900/50 border border-slate-800 rounded-[12px] p-5 space-y-2.5">
+                <div className="p-2 w-fit rounded bg-blue-500/10 text-[#3B82F6]">
+                  <FileText className="w-5 h-5" />
                 </div>
+                <h3 className="text-[14px] font-bold text-white">Repository Overview</h3>
+                <p className="text-[12px] text-[#9CA3AF] leading-normal">
+                  Extracts metadata including stars, forks, license, watches, and size metrics from raw GitHub endpoints.
+                </p>
               </div>
 
-              {error && (
-                <div className="flex items-start gap-2 text-red-600 text-[13px] bg-red-50 p-3 rounded-lg border border-red-100">
-                  <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                  <span>{error}</span>
+              <div className="bg-slate-900/50 border border-slate-800 rounded-[12px] p-5 space-y-2.5">
+                <div className="p-2 w-fit rounded bg-purple-500/10 text-brand-purple">
+                  <GitCommit className="w-5 h-5" />
                 </div>
-              )}
+                <h3 className="text-[14px] font-bold text-white">Commit Analytics</h3>
+                <p className="text-[12px] text-[#9CA3AF] leading-normal">
+                  Maps daily commit volume over the last 30 days and day-of-week active hours in interactive graphs.
+                </p>
+              </div>
 
-              <button
-                type="submit"
-                className="w-full flex items-center justify-center gap-2 px-6 py-3 text-[14px] font-bold rounded-[8px] text-white bg-[#2563EB] hover:bg-[#1D4ED8] transition-colors shadow-sm cursor-pointer"
-              >
-                Analyze Repo
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </form>
+              <div className="bg-slate-900/50 border border-slate-800 rounded-[12px] p-5 space-y-2.5">
+                <div className="p-2 w-fit rounded bg-emerald-500/10 text-brand-emerald">
+                  <Users className="w-5 h-5" />
+                </div>
+                <h3 className="text-[14px] font-bold text-white">Top Contributors</h3>
+                <p className="text-[12px] text-[#9CA3AF] leading-normal">
+                  Compiles avatars, rank, total contributions, and true percentage share of commits across the project.
+                </p>
+              </div>
+
+              <div className="bg-slate-900/50 border border-slate-800 rounded-[12px] p-5 space-y-2.5">
+                <div className="p-2 w-fit rounded bg-cyan-500/10 text-brand-cyan">
+                  <PieChart className="w-5 h-5" />
+                </div>
+                <h3 className="text-[14px] font-bold text-white">Languages Distribution</h3>
+                <p className="text-[12px] text-[#9CA3AF] leading-normal">
+                  Inspects byte counts of files in the project to calculate precise, custom-colored language percentage shares.
+                </p>
+              </div>
+
+              <div className="bg-slate-900/50 border border-slate-800 rounded-[12px] p-5 space-y-2.5">
+                <div className="p-2 w-fit rounded bg-orange-500/10 text-orange-400">
+                  <Award className="w-5 h-5" />
+                </div>
+                <h3 className="text-[14px] font-bold text-white">Hygiene Score</h3>
+                <p className="text-[12px] text-[#9CA3AF] leading-normal">
+                  Calculates a repository health score out of 100 based on docs, issues, licensing, and commit consistency.
+                </p>
+              </div>
+
+              <div className="bg-slate-900/50 border border-slate-800 rounded-[12px] p-5 space-y-2.5">
+                <div className="p-2 w-fit rounded bg-indigo-500/10 text-indigo-400">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <h3 className="text-[14px] font-bold text-white">Automated Insights</h3>
+                <p className="text-[12px] text-[#9CA3AF] leading-normal">
+                  Computes qualitative observations, comparing commit velocity changes month-over-month.
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Examples Section */}
           <div className="space-y-4 pt-2">
-            <div className="flex items-center gap-2.5 text-[#E5E7EB]">
+            <div className="flex items-center gap-2.5 text-[#E5E7EB] justify-center md:justify-start">
               <GithubIconLarge className="text-[#9CA3AF]" />
-              <h2 className="text-[14px] font-semibold">Try these example repositories</h2>
+              <h2 className="text-[14px] font-bold">Select a repository below to analyze and test</h2>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -301,7 +312,7 @@ export default function LandingPage() {
                   className="bg-white border border-[#E2E8F0] rounded-[12px] p-5 shadow-sm text-left flex flex-col justify-between h-44"
                 >
                   <div>
-                    <h3 className="text-[14px] font-bold text-slate-400">
+                    <h3 className="text-[14px] font-bold text-slate-800">
                       {repo.name}
                     </h3>
                     <p className="text-[12px] text-slate-500 mt-2 line-clamp-4 font-normal leading-relaxed">
