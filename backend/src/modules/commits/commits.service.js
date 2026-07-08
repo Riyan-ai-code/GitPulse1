@@ -66,7 +66,7 @@ export const getCommitStats = async (owner, repo) => {
   }
 
   // 5. Build recent commits list (formatted for frontend display)
-  const formattedCommits = recentCommits.slice(0, 15).map(c => ({
+  const formattedCommits = recentCommits.slice(0, 100).map(c => ({
     sha: c.sha,
     author: {
       name: c.commit.author.name,
