@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-primary: #2563EB;
+  --color-brand-primary-hover: #1D4ED8;
+  --color-brand-primary-light: #DBEAFE;
+  
+  --color-brand-cyan: #06B6D4;
+  --color-brand-emerald: #10B981;
+  --color-brand-amber: #F59E0B;
+  --color-brand-red: #EF4444;
+  --color-brand-purple: #8B5CF6;
+  
+  --color-bg-main: #F8FAFC;
+  --color-bg-card: #FFFFFF;
+  --color-bg-secondary: #F1F5F9;
+  --color-bg-hover: #F8FAFC;
+  
+  --color-text-heading: #0F172A;
+  --color-text-primary: #1E293B;
+  --color-text-secondary: #64748B;
+  --color-text-muted: #94A3B8;
+  
+  --color-border-card: #E2E8F0;
+  --color-border-divider: #CBD5E1;
+
+  --shadow-soft: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --shadow-hover-card: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+:root {
+  --background: #F8FAFC;
+  --foreground: #1E293B;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+/* Custom Scrollbar for modern dashboards */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
