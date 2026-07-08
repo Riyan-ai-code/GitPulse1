@@ -83,7 +83,7 @@ export default function LandingPage() {
   const [error, setError] = useState<string | null>(null);
 
   // Dashboard states
-  const [activeTab, setActiveTab] = useState<TabType>('dashboard');
+  const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
 
   // Progressive loading states
@@ -177,7 +177,7 @@ export default function LandingPage() {
     setCommits(null);
     setContributors(null);
     setAnalysis(null);
-    setActiveTab('dashboard');
+    setActiveTab('overview');
   };
 
   const Skeleton = ({ className = 'h-32' }) => (
@@ -583,6 +583,25 @@ export default function LandingPage() {
                 </div>
               )}
 
+              {/* Horizontal Tabs Navigation */}
+              {overview && (
+                <div className="border-b border-border-divider flex gap-6 pb-px">
+                  {(['overview', 'commits', 'contributors', 'quality', 'insights'] as TabType[]).map((tab) => (
+                    <button
+                      key={tab}
+                      onClick={() => setActiveTab(tab)}
+                      className={`pb-2.5 text-[13px] sm:text-[14px] font-bold border-b-2 transition-all cursor-pointer capitalize ${
+                        activeTab === tab
+                          ? 'border-brand-primary text-brand-primary dark:border-[#8B5CF6] dark:text-[#8B5CF6]'
+                          : 'border-transparent text-text-secondary hover:text-text-heading'
+                      }`}
+                    >
+                      {tab === 'quality' ? 'Commit Quality' : tab}
+                    </button>
+                  ))}
+                </div>
+              )}
+
               {/* Dynamic tabs render */}
               {activeTab === 'dashboard' && (
                 <div className="space-y-6">
@@ -712,21 +731,12 @@ export default function LandingPage() {
               )}
 
               {activeTab === 'overview' && (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fadeIn">
-                  <div className="lg:col-span-2">
-                    {loadingOverview || !overview ? (
-                      <Skeleton className="h-[400px]" />
-                    ) : (
-                      <RepositoryOverview data={overview} />
-                    )}
-                  </div>
-                  <div className="lg:col-span-1">
-                    {loadingOverview || !overview ? (
-                      <Skeleton className="h-[300px]" />
-                    ) : (
-                      <LanguageChart languages={overview.languages} />
-                    )}
-                  </div>
+                <div className="animate-fadeIn">
+                  {loadingOverview || !overview ? (
+                    <Skeleton className="h-[450px]" />
+                  ) : (
+                    <RepositoryOverview data={overview} />
+                  )}
                 </div>
               )}
 

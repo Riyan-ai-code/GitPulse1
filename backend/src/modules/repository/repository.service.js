@@ -34,6 +34,7 @@ export const getRepositoryOverview = async (owner, repo) => {
     hasIssues: repoData.has_issues,
     createdAt: repoData.created_at,
     updatedAt: repoData.updated_at,
-    languages
+    languages,
+    topics: repoData.topics || []
   };
 };
