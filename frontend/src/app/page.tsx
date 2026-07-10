@@ -290,7 +290,7 @@ export default function LandingPage() {
     }
 
     if (hasChanged) {
-      const newSearch = params.toString() ? `?${params.toString()}` : '/';
+      const newSearch = params.toString() ? `?${params.toString()}` : '';
       window.history.pushState({ repo: newRepo, tab: newTab }, '', window.location.pathname + newSearch);
     }
   }, [analyzedRepo, activeTab]);
