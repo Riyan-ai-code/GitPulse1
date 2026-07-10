@@ -25,7 +25,19 @@ app.use((req, res, next) => {
       return [parts[0], parts.slice(1).join('=')];
     })
   );
-  const token = cookies.github_oauth_token || null;
+
+  let token = cookies.github_access_token || null;
+
+  if (!token && cookies.github_refresh_token) {
+    token = cookies.github_refresh_token;
+    res.cookie('github_access_token', token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      maxAge: 15 * 60 * 1000 // 15 minutes
+    });
+  }
+
   authLocalStorage.run(token, () => {
     next();
   });

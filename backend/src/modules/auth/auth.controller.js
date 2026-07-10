@@ -49,12 +49,20 @@ export const githubCallback = async (req, res) => {
       return res.redirect(`http://localhost:3000?auth_error=${encodeURIComponent(error)}`);
     }
 
-    // Set cookie as HttpOnly for anti-XSS security
-    res.cookie('github_oauth_token', access_token, {
+    // Set access token cookie (15 minutes)
+    res.cookie('github_access_token', access_token, {
       httpOnly: true,
       secure: false, // SameSite cookie over http for local dev
       sameSite: 'lax',
-      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+      maxAge: 15 * 60 * 1000 // 15 minutes
+    });
+
+    // Set refresh token cookie (24 hours)
+    res.cookie('github_refresh_token', access_token, {
+      httpOnly: true,
+      secure: false, // SameSite cookie over http for local dev
+      sameSite: 'lax',
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
     });
 
     return res.redirect('http://localhost:3000?auth_success=true');
@@ -74,7 +82,16 @@ export const getAuthenticatedUser = async (req, res) => {
     })
   );
   
-  const token = cookies.github_oauth_token;
+  let token = cookies.github_access_token || null;
+  if (!token && cookies.github_refresh_token) {
+    token = cookies.github_refresh_token;
+    res.cookie('github_access_token', token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      maxAge: 15 * 60 * 1000 // 15 minutes
+    });
+  }
 
   if (!token) {
     return res.json({ authenticated: false, user: null });
@@ -99,12 +116,14 @@ export const getAuthenticatedUser = async (req, res) => {
     });
   } catch (error) {
     console.warn('[OAuth] Invalid or expired github oauth token, clearing:', error.message);
-    res.clearCookie('github_oauth_token');
+    res.clearCookie('github_access_token');
+    res.clearCookie('github_refresh_token');
     return res.json({ authenticated: false, user: null });
   }
 };
 
 export const logout = (req, res) => {
-  res.clearCookie('github_oauth_token');
+  res.clearCookie('github_access_token');
+  res.clearCookie('github_refresh_token');
   return res.json({ success: true, message: 'Logged out successfully' });
 };
