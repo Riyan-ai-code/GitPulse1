@@ -1,75 +1,6 @@
 {
   "cache": [
     {
-      "key": "analysis:riyan-ai-code/deep-guard-backend",
-      "data": {
-        "healthScore": 55,
-        "healthBreakdown": [
-          {
-            "metric": "README File Present",
-            "passed": true,
-            "score": 15,
-            "maxScore": 15,
-            "description": "Project contains documentation."
-          },
-          {
-            "metric": "Open Source License",
-            "passed": false,
-            "score": 0,
-            "maxScore": 5,
-            "description": "No open-source license found."
-          },
-          {
-            "metric": "Issues Enabled",
-            "passed": false,
-            "score": 0,
-            "maxScore": 10,
-            "description": "Issues are disabled."
-          },
-          {
-            "metric": "Contributor Base",
-            "passed": true,
-            "score": 10,
-            "maxScore": 20,
-            "description": "3 active contributors found."
-          },
-          {
-            "metric": "Recent Activity (30 Days)",
-            "passed": false,
-            "score": 10,
-            "maxScore": 25,
-            "description": "1 commits in the last 30 days."
-          },
-          {
-            "metric": "Commit Recency",
-            "passed": true,
-            "score": 20,
-            "maxScore": 25,
-            "description": "Last commit was 9 days ago (active)."
-          }
-        ],
-        "insights": [
-          {
-            "text": "Repository is actively maintained (recent changes made within 2 weeks).",
-            "type": "success"
-          },
-          {
-            "text": "Development velocity decreased by 50% this month compared to last month.",
-            "type": "warning"
-          },
-          {
-            "text": "Codebase is highly specialized, primarily written in JavaScript (98.6%).",
-            "type": "info"
-          },
-          {
-            "text": "Caution: No open-source license detected. Verify terms before cloning or copying code.",
-            "type": "warning"
-          }
-        ]
-      },
-      "expiresAt": 1783709511340
-    },
-    {
       "key": "overview:riyan-ai-code/deep-guard-backend",
       "data": {
         "name": "Deep-Guard-Backend",
@@ -4929,6 +4860,98 @@
         ]
       },
       "expiresAt": 1783712731266
+    },
+    {
+      "key": "contributors:stutikatiyar/vigilxi",
+      "data": {
+        "totalContributors": 2,
+        "contributors": [
+          {
+            "login": "stutikatiyar",
+            "avatar_url": "https://avatars.githubusercontent.com/u/171247284?v=4",
+            "html_url": "https://github.com/stutikatiyar",
+            "commits": 30,
+            "percentage": 90.9
+          },
+          {
+            "login": "stka23aiml-beep",
+            "avatar_url": "https://avatars.githubusercontent.com/u/232881819?v=4",
+            "html_url": "https://github.com/stka23aiml-beep",
+            "commits": 3,
+            "percentage": 9.1
+          }
+        ]
+      },
+      "expiresAt": 1783713639597
+    },
+    {
+      "key": "analysis:stutikatiyar/vigilxi",
+      "data": {
+        "healthScore": 75,
+        "healthBreakdown": [
+          {
+            "metric": "README File Present",
+            "passed": true,
+            "score": 15,
+            "maxScore": 15,
+            "description": "Project contains documentation."
+          },
+          {
+            "metric": "Open Source License",
+            "passed": false,
+            "score": 0,
+            "maxScore": 5,
+            "description": "No open-source license found."
+          },
+          {
+            "metric": "Issues Enabled",
+            "passed": true,
+            "score": 10,
+            "maxScore": 10,
+            "description": "GitHub issues are enabled for feedback."
+          },
+          {
+            "metric": "Contributor Base",
+            "passed": true,
+            "score": 10,
+            "maxScore": 20,
+            "description": "2 active contributors found."
+          },
+          {
+            "metric": "Recent Activity (30 Days)",
+            "passed": true,
+            "score": 20,
+            "maxScore": 25,
+            "description": "20 commits in the last 30 days."
+          },
+          {
+            "metric": "Commit Recency",
+            "passed": true,
+            "score": 20,
+            "maxScore": 25,
+            "description": "Last commit was 12 days ago (active)."
+          }
+        ],
+        "insights": [
+          {
+            "text": "Repository is actively maintained (recent changes made within 2 weeks).",
+            "type": "success"
+          },
+          {
+            "text": "Development velocity increased by 54% this month compared to last month.",
+            "type": "success"
+          },
+          {
+            "text": "Uses a diverse tech stack spanning multiple programming languages.",
+            "type": "info"
+          },
+          {
+            "text": "Caution: No open-source license detected. Verify terms before cloning or copying code.",
+            "type": "warning"
+          }
+        ]
+      },
+      "expiresAt": 1783713640493
     }
   ],
   "history": [

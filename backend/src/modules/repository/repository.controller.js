@@ -55,3 +55,21 @@ export const getHistoryList = (req, res) => {
   const history = fileDb.getHistory();
   return res.json(history);
 };
+
+export const deleteHistory = (req, res) => {
+  const { owner, repo } = req.query;
+  if (!owner || !repo) {
+    return res.status(400).json({ error: 'Both "owner" and "repo" query parameters are required.' });
+  }
+  const deleted = fileDb.deleteHistoryEntry(owner, repo);
+  return res.json({ success: true, deleted });
+};
+
+export const deleteAnalysis = (req, res) => {
+  const { owner, repo } = req.query;
+  if (!owner || !repo) {
+    return res.status(400).json({ error: 'Both "owner" and "repo" query parameters are required.' });
+  }
+  const deleted = fileDb.deleteCacheEntries(owner, repo);
+  return res.json({ success: true, deleted });
+};

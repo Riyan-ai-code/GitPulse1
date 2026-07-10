@@ -1,10 +1,12 @@
 import express from 'express';
-import { getOverview, getPrsIssues, getHistoryList } from './repository.controller.js';
+import { getOverview, getPrsIssues, getHistoryList, deleteHistory, deleteAnalysis } from './repository.controller.js';
 
 const router = express.Router();
 
 router.get('/', getOverview);
 router.get('/prs-issues', getPrsIssues);
 router.get('/history', getHistoryList);
+router.delete('/history', deleteHistory);
+router.delete('/analysis', deleteAnalysis);
 
 export default router;

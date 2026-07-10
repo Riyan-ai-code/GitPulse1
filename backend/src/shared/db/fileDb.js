@@ -84,3 +84,22 @@ export const getHistory = () => {
   const db = readDb();
   return db.history || [];
 };
+
+export const deleteHistoryEntry = (owner, repo) => {
+  const db = readDb();
+  const before = db.history.length;
+  db.history = db.history.filter(h =>
+    !(h.owner.toLowerCase() === owner.toLowerCase() && h.repo.toLowerCase() === repo.toLowerCase())
+  );
+  writeDb(db);
+  return db.history.length < before;
+};
+
+export const deleteCacheEntries = (owner, repo) => {
+  const db = readDb();
+  const prefix = `${owner.toLowerCase()}/${repo.toLowerCase()}`;
+  const before = db.cache.length;
+  db.cache = db.cache.filter(c => !c.key.endsWith(prefix));
+  writeDb(db);
+  return db.cache.length < before;
+};
