@@ -410,8 +410,8 @@ export default function LandingPage() {
     { name: 'microsoft/vscode', owner: 'microsoft', repo: 'vscode', desc: 'Visual Studio Code - Professional, developer-focused code editor.' }
   ];
 
-  // 1. Render Search Landing Page (When no repo is analyzed)
-  if (!analyzedRepo) {
+  // 1. Render Search Landing Page (When guest and no repo is analyzed)
+  if (!analyzedRepo && !currentUser) {
     return (
       <div className="flex-1 flex flex-col justify-center bg-[#0B0F19] py-16 px-4 sm:px-6 lg:px-8 text-white min-h-screen relative">
         {/* Standalone Landing Header */}
@@ -423,26 +423,13 @@ export default function LandingPage() {
             <span className="font-bold text-[16px] text-white tracking-tight">GitPulse</span>
           </div>
           <div className="flex items-center gap-3">
-            {!currentUser ? (
-              <a
-                href="http://localhost:5000/api/auth/github"
-                className="inline-flex items-center gap-1.5 px-4 py-2 border border-slate-800 hover:border-slate-600 rounded-lg bg-[#24292F] hover:bg-[#24292F]/80 text-[13px] font-bold text-white transition-all cursor-pointer shadow-sm"
-              >
-                <GithubIcon className="w-4 h-4 text-white" />
-                Sign In
-              </a>
-            ) : (
-              <div className="flex items-center gap-2.5 bg-slate-900/60 border border-slate-800 px-3 py-1.5 rounded-lg">
-                <img src={currentUser.avatar_url} alt="" className="w-5 h-5 rounded-full object-cover" />
-                <span className="text-[12.5px] font-bold text-slate-300">{currentUser.login}</span>
-                <button
-                  onClick={handleLogout}
-                  className="text-[11px] font-extrabold text-red-400 hover:text-red-300 ml-1 cursor-pointer"
-                >
-                  Logout
-                </button>
-              </div>
-            )}
+            <a
+              href="http://localhost:5000/api/auth/github"
+              className="inline-flex items-center gap-1.5 px-4 py-2 border border-slate-800 hover:border-slate-600 rounded-lg bg-[#24292F] hover:bg-[#24292F]/80 text-[13px] font-bold text-white transition-all cursor-pointer shadow-sm"
+            >
+              <GithubIcon className="w-4 h-4 text-white" />
+              Sign In
+            </a>
             <button
               onClick={() => handleExampleSelect('', '')}
               className="inline-flex items-center gap-1.5 px-4.5 py-2 border border-slate-800 hover:border-slate-600 rounded-lg bg-slate-900/60 hover:bg-slate-950 text-[13px] font-bold text-white transition-all cursor-pointer shadow-sm"
@@ -863,7 +850,7 @@ export default function LandingPage() {
               </div>
               <div className="flex gap-3 pt-2">
                 <button
-                  onClick={() => loadData(analyzedRepo.owner, analyzedRepo.repo)}
+                  onClick={() => analyzedRepo && loadData(analyzedRepo.owner, analyzedRepo.repo)}
                   className="px-4 py-2 bg-brand-primary text-white text-[14px] font-bold rounded-lg hover:bg-brand-primary-hover shadow-soft cursor-pointer"
                 >
                   Retry
@@ -918,7 +905,7 @@ export default function LandingPage() {
                         <p className="text-[13px] font-bold text-text-heading">{analysisDate}</p>
                       </div>
                       <button
-                        onClick={() => loadData(analyzedRepo.owner, analyzedRepo.repo)}
+                        onClick={() => analyzedRepo && loadData(analyzedRepo.owner, analyzedRepo.repo)}
                         className="inline-flex items-center justify-center gap-2 px-4 py-2 border border-transparent text-[13px] font-bold rounded-lg text-white bg-brand-primary hover:bg-brand-primary-hover shadow-soft cursor-pointer transition-colors"
                       >
                         <RefreshCw className="w-3.5 h-3.5" />
