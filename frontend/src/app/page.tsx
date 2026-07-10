@@ -422,13 +422,35 @@ export default function LandingPage() {
             </div>
             <span className="font-bold text-[16px] text-white tracking-tight">GitPulse</span>
           </div>
-          <button
-            onClick={() => handleExampleSelect('', '')}
-            className="inline-flex items-center gap-1.5 px-4.5 py-2 border border-slate-800 hover:border-slate-600 rounded-lg bg-slate-900/60 hover:bg-slate-950 text-[13px] font-bold text-white transition-all cursor-pointer shadow-sm"
-          >
-            Go Check It Out
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
+          <div className="flex items-center gap-3">
+            {!currentUser ? (
+              <a
+                href="http://localhost:5000/api/auth/github"
+                className="inline-flex items-center gap-1.5 px-4 py-2 border border-slate-800 hover:border-slate-600 rounded-lg bg-[#24292F] hover:bg-[#24292F]/80 text-[13px] font-bold text-white transition-all cursor-pointer shadow-sm"
+              >
+                <GithubIcon className="w-4 h-4 text-white" />
+                Sign In
+              </a>
+            ) : (
+              <div className="flex items-center gap-2.5 bg-slate-900/60 border border-slate-800 px-3 py-1.5 rounded-lg">
+                <img src={currentUser.avatar_url} alt="" className="w-5 h-5 rounded-full object-cover" />
+                <span className="text-[12.5px] font-bold text-slate-300">{currentUser.login}</span>
+                <button
+                  onClick={handleLogout}
+                  className="text-[11px] font-extrabold text-red-400 hover:text-red-300 ml-1 cursor-pointer"
+                >
+                  Logout
+                </button>
+              </div>
+            )}
+            <button
+              onClick={() => handleExampleSelect('', '')}
+              className="inline-flex items-center gap-1.5 px-4.5 py-2 border border-slate-800 hover:border-slate-600 rounded-lg bg-slate-900/60 hover:bg-slate-950 text-[13px] font-bold text-white transition-all cursor-pointer shadow-sm"
+            >
+              Go Check It Out
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </header>
 
         <div className="max-w-4xl mx-auto w-full space-y-12 animate-fadeIn pt-10">
