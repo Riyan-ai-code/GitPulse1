@@ -1,29 +1,6 @@
 {
   "cache": [
     {
-      "key": "contributors:stutikatiyar/vigilxi",
-      "data": {
-        "totalContributors": 2,
-        "contributors": [
-          {
-            "login": "stutikatiyar",
-            "avatar_url": "https://avatars.githubusercontent.com/u/171247284?v=4",
-            "html_url": "https://github.com/stutikatiyar",
-            "commits": 30,
-            "percentage": 90.9
-          },
-          {
-            "login": "stka23aiml-beep",
-            "avatar_url": "https://avatars.githubusercontent.com/u/232881819?v=4",
-            "html_url": "https://github.com/stka23aiml-beep",
-            "commits": 3,
-            "percentage": 9.1
-          }
-        ]
-      },
-      "expiresAt": 1783707188169
-    },
-    {
       "key": "analysis:stutikatiyar/vigilxi",
       "data": {
         "healthScore": 75,
@@ -1092,6 +1069,77 @@
         ]
       },
       "expiresAt": 1783710597601
+    },
+    {
+      "key": "prs-issues:riyan-ai-code/deep-guard-backend",
+      "data": {
+        "prs": {
+          "total": 4,
+          "open": 0,
+          "closed": 4,
+          "avgMergeTimeHours": 0,
+          "recent": [
+            {
+              "number": 4,
+              "title": "Parth",
+              "state": "closed",
+              "html_url": "https://github.com/Riyan-ai-code/Deep-Guard-Backend/pull/4",
+              "createdAt": "2025-11-23T18:07:35Z",
+              "closedAt": "2025-11-23T18:07:45Z",
+              "user": {
+                "login": "Riyan-ai-code",
+                "avatar_url": "https://avatars.githubusercontent.com/u/190417446?v=4"
+              }
+            },
+            {
+              "number": 3,
+              "title": "checking for commits",
+              "state": "closed",
+              "html_url": "https://github.com/Riyan-ai-code/Deep-Guard-Backend/pull/3",
+              "createdAt": "2025-11-23T17:59:16Z",
+              "closedAt": "2025-11-23T17:59:26Z",
+              "user": {
+                "login": "Riyan-ai-code",
+                "avatar_url": "https://avatars.githubusercontent.com/u/190417446?v=4"
+              }
+            },
+            {
+              "number": 2,
+              "title": "Checking",
+              "state": "closed",
+              "html_url": "https://github.com/Riyan-ai-code/Deep-Guard-Backend/pull/2",
+              "createdAt": "2025-11-23T17:40:58Z",
+              "closedAt": "2025-11-23T17:41:10Z",
+              "user": {
+                "login": "Riyan-ai-code",
+                "avatar_url": "https://avatars.githubusercontent.com/u/190417446?v=4"
+              }
+            },
+            {
+              "number": 1,
+              "title": "logout and everything of auth done",
+              "state": "closed",
+              "html_url": "https://github.com/Riyan-ai-code/Deep-Guard-Backend/pull/1",
+              "createdAt": "2025-11-22T10:59:42Z",
+              "closedAt": "2025-11-22T10:59:59Z",
+              "user": {
+                "login": "Riyan-ai-code",
+                "avatar_url": "https://avatars.githubusercontent.com/u/190417446?v=4"
+              }
+            }
+          ]
+        },
+        "issues": {
+          "total": 0,
+          "open": 0,
+          "closed": 0,
+          "avgResolutionTimeHours": null,
+          "staleCount": 0,
+          "staleList": [],
+          "recent": []
+        }
+      },
+      "expiresAt": 1783710794208
     }
   ],
   "history": [

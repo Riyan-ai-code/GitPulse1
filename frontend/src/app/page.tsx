@@ -711,7 +711,16 @@ export default function LandingPage() {
                 if (activeTab !== 'overview') {
                   setActiveTab('overview');
                 } else {
-                  resetSearch();
+                  if (analyzedRepo && (analyzedRepo.owner || analyzedRepo.repo)) {
+                    setAnalyzedRepo({ owner: '', repo: '' });
+                    setOverview(null);
+                    setCommits(null);
+                    setContributors(null);
+                    setAnalysis(null);
+                    setInputValue('');
+                  } else {
+                    resetSearch();
+                  }
                 }
               }}
               className="p-1 rounded-md text-text-secondary hover:bg-bg-secondary hover:text-text-heading transition-colors cursor-pointer"
