@@ -718,7 +718,7 @@ export default function LandingPage() {
         </div>
 
         {/* Auth status block */}
-        {currentUser && (
+        {currentUser ? (
           <div className="px-3 py-3 border-t border-border-card mt-3 no-print">
             <div className="flex items-center justify-between px-2 py-2 bg-slate-50 dark:bg-bg-secondary/40 rounded-lg">
               <div className="flex items-center gap-2 overflow-hidden">
@@ -736,6 +736,16 @@ export default function LandingPage() {
                 Logout
               </button>
             </div>
+          </div>
+        ) : (
+          <div className="px-3 py-3 border-t border-border-card mt-3 no-print">
+            <button
+              onClick={resetSearch}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-slate-50 dark:bg-bg-secondary/40 hover:bg-slate-100 dark:hover:bg-bg-secondary/70 text-text-secondary hover:text-text-heading rounded-lg text-[12.5px] font-bold transition-all cursor-pointer border border-border-divider/50"
+            >
+              <LogOut className="w-3.5 h-3.5 text-text-muted" />
+              Exit Workspace
+            </button>
           </div>
         )}
       </aside>
