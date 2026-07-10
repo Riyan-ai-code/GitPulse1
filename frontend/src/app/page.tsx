@@ -1058,53 +1058,52 @@ export default function LandingPage() {
               {activeTab === 'overview' && (
                 <div className="animate-fadeIn space-y-6">
                   {/* Dashboard Repository Switcher Search Card */}
-                  {!loadingOverview && (
-                    <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-5 shadow-soft">
-                      <form onSubmit={handleSubmit} className="flex flex-col md:flex-row items-center gap-3">
-                        <div className="flex items-center gap-2 text-text-heading min-w-[200px] flex-shrink-0">
-                          <Search className="w-4.5 h-4.5 text-brand-primary" />
-                          <span className="text-[13px] font-extrabold uppercase tracking-wide">Analyze Repository</span>
-                        </div>
-                        
-                        <div className="relative w-full flex-1">
-                          <input
-                            type="text"
-                            value={inputValue}
-                            onChange={(e) => {
-                              setInputValue(e.target.value);
-                              if (error) setError(null);
-                            }}
-                            className="block w-full rounded-[8px] border border-border-card dark:border-slate-800 bg-bg-main dark:bg-[#1E293B] py-2 pl-3 text-[13px] text-text-heading placeholder-text-muted focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
-                            placeholder="Paste GitHub Repository URL or type 'owner/repo'..."
-                          />
-                        </div>
+                  <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-5 shadow-soft">
+                    <form onSubmit={handleSubmit} className="flex flex-col md:flex-row items-center gap-3">
+                      <div className="flex items-center gap-2 text-text-heading min-w-[200px] flex-shrink-0">
+                        <Search className="w-4.5 h-4.5 text-brand-primary" />
+                        <span className="text-[13px] font-extrabold uppercase tracking-wide">Analyze Repository</span>
+                      </div>
+                      
+                      <div className="relative w-full flex-1">
+                        <input
+                          type="text"
+                          disabled={loadingOverview}
+                          value={inputValue}
+                          onChange={(e) => {
+                            setInputValue(e.target.value);
+                            if (error) setError(null);
+                          }}
+                          className="block w-full rounded-[8px] border border-border-card dark:border-slate-800 bg-bg-main dark:bg-[#1E293B] py-2 pl-3 text-[13px] text-text-heading placeholder-text-muted focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary disabled:opacity-50"
+                          placeholder="Paste GitHub Repository URL or type 'owner/repo'..."
+                        />
+                      </div>
 
-                        <button
-                          type="submit"
-                          className="w-full md:w-auto px-5 py-2 text-[13px] font-bold rounded-[8px] text-white bg-brand-primary hover:bg-brand-primary-hover transition-colors shadow-soft cursor-pointer flex items-center justify-center gap-1.5"
-                        >
-                          Analyze
-                          <ArrowRight className="w-3.5 h-3.5" />
-                        </button>
-                      </form>
+                      <button
+                        type="submit"
+                        disabled={loadingOverview}
+                        className="w-full md:w-auto px-5 py-2 text-[13px] font-bold rounded-[8px] text-white bg-brand-primary hover:bg-brand-primary-hover transition-colors shadow-soft cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50"
+                      >
+                        Analyze
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </form>
 
-                      {error && (
-                        <div className="flex items-start gap-2 text-red-600 text-[12px] bg-red-50 dark:bg-red-950/10 p-2.5 rounded-lg border border-red-100 dark:border-red-900/20 mt-3">
-                          <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                          <span>{error}</span>
-                        </div>
-                      )}
+                    {error && (
+                      <div className="flex items-start gap-2 text-red-600 text-[12px] bg-red-50 dark:bg-red-950/10 p-2.5 rounded-lg border border-red-100 dark:border-red-900/20 mt-3">
+                        <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                        <span>{error}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {loadingOverview ? (
+                    <div className="space-y-6 animate-pulse">
+                      <Skeleton className="h-28 w-full" />
+                      <Skeleton className="h-[450px] w-full" />
                     </div>
-                  )}
-
-                  {overview ? (
-                    <>
-                      {loadingOverview ? (
-                        <Skeleton className="h-[450px]" />
-                      ) : (
-                        <RepositoryOverview data={overview} />
-                      )}
-                    </>
+                  ) : overview ? (
+                    <RepositoryOverview data={overview} />
                   ) : (
                     <EmptyStateWorkspace />
                   )}
