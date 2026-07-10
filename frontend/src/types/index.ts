@@ -26,6 +26,7 @@ export interface RepositoryOverview {
   updatedAt: string;
   languages: Language[];
   topics: string[];
+  version: string | null;
 }
 
 export interface RecentCommitAuthor {

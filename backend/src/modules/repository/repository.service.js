@@ -15,6 +15,15 @@ export const getRepositoryOverview = async (owner, repo) => {
     percentage: totalBytes > 0 ? parseFloat(((bytes / totalBytes) * 100).toFixed(1)) : 0
   })).sort((a, b) => b.bytes - a.bytes); // Sort descending
 
+  // Get latest release version (if available)
+  let version = null;
+  try {
+    const releaseRes = await githubClient.get(`/repos/${owner}/${repo}/releases/latest`);
+    version = releaseRes.data.tag_name;
+  } catch (error) {
+    version = null; // No releases found
+  }
+
   // Format and return response
   return {
     name: repoData.name,
@@ -35,6 +44,7 @@ export const getRepositoryOverview = async (owner, repo) => {
     createdAt: repoData.created_at,
     updatedAt: repoData.updated_at,
     languages,
-    topics: repoData.topics || []
+    topics: repoData.topics || [],
+    version
   };
 };

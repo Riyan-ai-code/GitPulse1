@@ -20,13 +20,15 @@ import {
   FileText,
   PieChart,
   GitFork,
-  AlertCircle
+  AlertCircle,
+  Search
 } from 'lucide-react';
 import {
   fetchRepositoryOverview,
   fetchCommitStats,
   fetchContributors,
-  fetchAnalysis
+  fetchAnalysis,
+  parseGitHubUrl
 } from '../lib/api';
 import {
   RepositoryOverview as RepositoryOverviewType,
@@ -80,6 +82,7 @@ type TabType = 'dashboard' | 'overview' | 'commits' | 'contributors' | 'quality'
 
 export default function LandingPage() {
   const [analyzedRepo, setAnalyzedRepo] = useState<{ owner: string; repo: string } | null>(null);
+  const [inputValue, setInputValue] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   // Dashboard states
@@ -162,7 +165,19 @@ export default function LandingPage() {
 
   useEffect(() => {
     if (analyzedRepo) {
-      loadData(analyzedRepo.owner, analyzedRepo.repo);
+      if (analyzedRepo.owner && analyzedRepo.repo) {
+        loadData(analyzedRepo.owner, analyzedRepo.repo);
+      } else {
+        setError(null);
+        setOverview(null);
+        setCommits(null);
+        setContributors(null);
+        setAnalysis(null);
+        setLoadingOverview(false);
+        setLoadingCommits(false);
+        setLoadingContributors(false);
+        setLoadingAnalysis(false);
+      }
     }
   }, [analyzedRepo]);
 
@@ -178,7 +193,31 @@ export default function LandingPage() {
     setContributors(null);
     setAnalysis(null);
     setActiveTab('overview');
+    setInputValue('');
   };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    const parsed = parseGitHubUrl(inputValue);
+    if (!parsed) {
+      setError('Please enter a valid GitHub URL or "owner/repo" path.');
+      return;
+    }
+
+    setAnalyzedRepo(parsed);
+  };
+
+  const EmptyStateWorkspace = () => (
+    <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-12 text-center text-text-secondary border-dashed animate-fadeIn">
+      <Activity className="w-10 h-10 text-brand-primary mx-auto mb-2.5 animate-pulse" />
+      <h3 className="text-[15px] font-bold text-text-heading">No Repository Analyzed Yet</h3>
+      <p className="text-[12px] text-text-muted mt-1 max-w-xs mx-auto">
+        Go back to the Overview tab and enter a GitHub repository path to inspect its analytics.
+      </p>
+    </div>
+  );
 
   const Skeleton = ({ className = 'h-32' }) => (
     <div className={`animate-pulse bg-slate-100 dark:bg-bg-secondary rounded-[12px] border border-border-card ${className}`} />
@@ -224,7 +263,7 @@ export default function LandingPage() {
             <span className="font-bold text-[16px] text-white tracking-tight">GitPulse</span>
           </div>
           <button
-            onClick={() => handleExampleSelect('vercel', 'next.js')}
+            onClick={() => handleExampleSelect('', '')}
             className="inline-flex items-center gap-1.5 px-4.5 py-2 border border-slate-800 hover:border-slate-600 rounded-lg bg-slate-900/60 hover:bg-slate-950 text-[13px] font-bold text-white transition-all cursor-pointer shadow-sm"
           >
             Go Check It Out
@@ -249,7 +288,7 @@ export default function LandingPage() {
 
           {/* How It Works Section */}
           <div className="space-y-4">
-            <h2 className="text-[14px] font-bold uppercase tracking-wider text-[#9CA3AF] text-center">
+            <h2 className="text-[14px] font-bold uppercase tracking-wider text-[#9CA3AF] text-center md:text-left">
               How it works & features
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -319,7 +358,7 @@ export default function LandingPage() {
           <div className="space-y-4 pt-2">
             <div className="flex items-center gap-2.5 text-[#E5E7EB] justify-center md:justify-start">
               <GithubIconLarge className="text-[#9CA3AF]" />
-              <h2 className="text-[14px] font-bold">Select a repository below to analyze and test</h2>
+              <h2 className="text-[14px] font-bold">Or test with one of these example repositories</h2>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -543,10 +582,12 @@ export default function LandingPage() {
             <div className="space-y-6">
               
               {/* Repository info header card */}
-              {loadingOverview || !overview ? (
-                <Skeleton className="h-32" />
-              ) : (
-                <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-6 shadow-soft hover:shadow-hover-card transition-all duration-200">
+              {loadingOverview && (
+                <Skeleton className="h-28" />
+              )}
+              
+              {!loadingOverview && overview && (
+                <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-6 shadow-soft">
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="space-y-2">
                       <p className="text-[12px] font-semibold text-text-secondary uppercase tracking-wider">Repository</p>
@@ -564,6 +605,11 @@ export default function LandingPage() {
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-50 dark:bg-purple-950/20 text-brand-purple">
                           ● {overview.license}
                         </span>
+                        {overview.version && (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400">
+                            ● Version: {overview.version}
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div className="flex flex-col md:items-end justify-between gap-3 text-left md:text-right">
@@ -583,202 +629,260 @@ export default function LandingPage() {
                 </div>
               )}
 
-              {/* Horizontal Tabs Navigation */}
-              {overview && (
-                <div className="border-b border-border-divider flex gap-6 pb-px">
-                  {(['overview', 'commits', 'contributors', 'quality', 'insights'] as TabType[]).map((tab) => (
-                    <button
-                      key={tab}
-                      onClick={() => setActiveTab(tab)}
-                      className={`pb-2.5 text-[13px] sm:text-[14px] font-bold border-b-2 transition-all cursor-pointer capitalize ${
-                        activeTab === tab
-                          ? 'border-brand-primary text-brand-primary dark:border-[#8B5CF6] dark:text-[#8B5CF6]'
-                          : 'border-transparent text-text-secondary hover:text-text-heading'
-                      }`}
-                    >
-                      {tab === 'quality' ? 'Commit Quality' : tab}
-                    </button>
-                  ))}
+              {!loadingOverview && !overview && (
+                <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-6 shadow-soft">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="space-y-2">
+                      <p className="text-[12px] font-semibold text-text-secondary uppercase tracking-wider">Workspace</p>
+                      <h2 className="text-[24px] font-extrabold text-brand-primary tracking-tight leading-none">
+                        GitPulse Analytics
+                      </h2>
+                      <p className="text-[14px] text-text-secondary">
+                        Enter a public GitHub repository link in the Overview tab to begin your analysis.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               )}
+
 
               {/* Dynamic tabs render */}
               {activeTab === 'dashboard' && (
                 <div className="space-y-6">
-                  {/* Row 1: KPI scores */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {/* Resume Readiness Score */}
-                    {loadingAnalysis || !analysis ? (
-                      <Skeleton className="h-28" />
-                    ) : (
-                      <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-5 shadow-soft hover:shadow-hover-card transition-all duration-200 flex flex-col justify-between">
-                        <div>
-                          <p className="text-[12px] font-semibold text-text-secondary uppercase tracking-wider">Health Score</p>
-                          <div className="flex items-baseline gap-2 mt-2">
-                            <span className="text-[32px] font-extrabold text-text-heading">{analysis.healthScore}</span>
-                            <span className="text-[14px] text-text-secondary">/100</span>
-                            <span className={`text-[12px] font-bold px-2 py-0.5 rounded-full ml-auto ${getHealthBadgeStyles(analysis.healthScore)}`}>
-                              {getHealthText(analysis.healthScore)}
-                            </span>
+                  {overview ? (
+                    <>
+                      {/* Row 1: KPI scores */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {/* Resume Readiness Score */}
+                        {loadingAnalysis || !analysis ? (
+                          <Skeleton className="h-28" />
+                        ) : (
+                          <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-5 shadow-soft hover:shadow-hover-card transition-all duration-200 flex flex-col justify-between">
+                            <div>
+                              <p className="text-[12px] font-semibold text-text-secondary uppercase tracking-wider">Health Score</p>
+                              <div className="flex items-baseline gap-2 mt-2">
+                                <span className="text-[32px] font-extrabold text-text-heading">{analysis.healthScore}</span>
+                                <span className="text-[14px] text-text-secondary">/100</span>
+                                <span className={`text-[12px] font-bold px-2 py-0.5 rounded-full ml-auto ${getHealthBadgeStyles(analysis.healthScore)}`}>
+                                  {getHealthText(analysis.healthScore)}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="mt-3 bg-slate-100 dark:bg-bg-secondary rounded-full h-1.5 overflow-hidden">
+                              <div
+                                className={`h-full rounded-full transition-all duration-500 ${
+                                  analysis.healthScore >= 90
+                                    ? 'bg-brand-emerald'
+                                    : analysis.healthScore >= 70
+                                    ? 'bg-brand-amber'
+                                    : 'bg-brand-red'
+                                }`}
+                                style={{ width: `${analysis.healthScore}%` }}
+                              />
+                            </div>
                           </div>
+                        )}
+
+                        {/* Total Commits */}
+                        {loadingCommits || !commits ? (
+                          <Skeleton className="h-28" />
+                        ) : (
+                          <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-5 shadow-soft hover:shadow-hover-card transition-all duration-200 flex flex-col justify-between">
+                            <div>
+                              <p className="text-[12px] font-semibold text-text-secondary uppercase tracking-wider">Total Commits</p>
+                              <div className="text-[32px] font-extrabold text-text-heading mt-2">
+                                {commits.totalCommits.toLocaleString()}
+                              </div>
+                            </div>
+                            <p className="text-[11px] text-text-secondary mt-2">All commits recorded</p>
+                          </div>
+                        )}
+
+                        {/* Contributors */}
+                        {loadingContributors || !contributors ? (
+                          <Skeleton className="h-28" />
+                        ) : (
+                          <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-5 shadow-soft hover:shadow-hover-card transition-all duration-200 flex flex-col justify-between">
+                            <div>
+                              <p className="text-[12px] font-semibold text-text-secondary uppercase tracking-wider">Contributors</p>
+                              <div className="text-[32px] font-extrabold text-text-heading mt-2">
+                                {contributors.contributors.length.toLocaleString()}
+                              </div>
+                            </div>
+                            <p className="text-[11px] text-text-secondary mt-2">Top contributors active</p>
+                          </div>
+                        )}
+
+                        {/* Commits Last 30 Days */}
+                        {loadingCommits || !commits ? (
+                          <Skeleton className="h-28" />
+                        ) : (
+                          <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-5 shadow-soft hover:shadow-hover-card transition-all duration-200 flex flex-col justify-between">
+                            <div>
+                              <p className="text-[12px] font-semibold text-text-secondary uppercase tracking-wider">Commits (Last 30 Days)</p>
+                              <div className="text-[32px] font-extrabold text-text-heading mt-2">
+                                {commits.commitsLast30Days.toLocaleString()}
+                              </div>
+                            </div>
+                            <p className="text-[11px] text-text-secondary mt-2">Active month velocity</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Row 2: Commit Activity */}
+                      <div>
+                        {loadingCommits || !commits ? (
+                          <Skeleton className="h-[340px]" />
+                        ) : (
+                          <CommitAnalysis data={commits} />
+                        )}
+                      </div>
+
+                      {/* Row 3: Commits Table & Contributors List */}
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div className="lg:col-span-2">
+                          {loadingCommits || !commits ? (
+                            <Skeleton className="h-[350px]" />
+                          ) : (
+                            <RecentCommitsTable commits={commits.recentCommits} />
+                          )}
                         </div>
-                        <div className="mt-3 bg-slate-100 dark:bg-bg-secondary rounded-full h-1.5 overflow-hidden">
-                          <div
-                            className={`h-full rounded-full transition-all duration-500 ${
-                              analysis.healthScore >= 90
-                                ? 'bg-brand-emerald'
-                                : analysis.healthScore >= 70
-                                ? 'bg-brand-amber'
-                                : 'bg-brand-red'
-                            }`}
-                            style={{ width: `${analysis.healthScore}%` }}
-                          />
+                        <div className="lg:col-span-1">
+                          {loadingContributors || !contributors ? (
+                            <Skeleton className="h-[350px]" />
+                          ) : (
+                            <ContributorsList data={contributors} />
+                          )}
                         </div>
                       </div>
-                    )}
 
-                    {/* Total Commits */}
-                    {loadingCommits || !commits ? (
-                      <Skeleton className="h-28" />
-                    ) : (
-                      <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-5 shadow-soft hover:shadow-hover-card transition-all duration-200 flex flex-col justify-between">
-                        <div>
-                          <p className="text-[12px] font-semibold text-text-secondary uppercase tracking-wider">Total Commits</p>
-                          <div className="text-[32px] font-extrabold text-text-heading mt-2">
-                            {commits.totalCommits.toLocaleString()}
-                          </div>
+                      {/* Row 4: Language Chart & Insights Panel */}
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div className="lg:col-span-1">
+                          {loadingOverview || !overview ? (
+                            <Skeleton className="h-[280px]" />
+                          ) : (
+                            <LanguageChart languages={overview.languages} />
+                          )}
                         </div>
-                        <p className="text-[11px] text-text-secondary mt-2">All commits recorded</p>
-                      </div>
-                    )}
-
-                    {/* Contributors */}
-                    {loadingContributors || !contributors ? (
-                      <Skeleton className="h-28" />
-                    ) : (
-                      <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-5 shadow-soft hover:shadow-hover-card transition-all duration-200 flex flex-col justify-between">
-                        <div>
-                          <p className="text-[12px] font-semibold text-text-secondary uppercase tracking-wider">Contributors</p>
-                          <div className="text-[32px] font-extrabold text-text-heading mt-2">
-                            {contributors.contributors.length.toLocaleString()}
-                          </div>
+                        <div className="lg:col-span-2">
+                          {loadingAnalysis || !analysis ? (
+                            <Skeleton className="h-[280px]" />
+                          ) : (
+                            <InsightsPanel insights={analysis.insights} />
+                          )}
                         </div>
-                        <p className="text-[11px] text-text-secondary mt-2">Top contributors active</p>
                       </div>
-                    )}
-
-                    {/* Commits Last 30 Days */}
-                    {loadingCommits || !commits ? (
-                      <Skeleton className="h-28" />
-                    ) : (
-                      <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-5 shadow-soft hover:shadow-hover-card transition-all duration-200 flex flex-col justify-between">
-                        <div>
-                          <p className="text-[12px] font-semibold text-text-secondary uppercase tracking-wider">Commits (Last 30 Days)</p>
-                          <div className="text-[32px] font-extrabold text-text-heading mt-2">
-                            {commits.commitsLast30Days.toLocaleString()}
-                          </div>
-                        </div>
-                        <p className="text-[11px] text-text-secondary mt-2">Active month velocity</p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Row 2: Commit Activity (Line Chart & Day of Week Bar Chart) */}
-                  <div>
-                    {loadingCommits || !commits ? (
-                      <Skeleton className="h-[340px]" />
-                    ) : (
-                      <CommitAnalysis data={commits} />
-                    )}
-                  </div>
-
-                  {/* Row 3: Commits Table & Contributors List */}
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="lg:col-span-2">
-                      {loadingCommits || !commits ? (
-                        <Skeleton className="h-[350px]" />
-                      ) : (
-                        <RecentCommitsTable commits={commits.recentCommits} />
-                      )}
-                    </div>
-                    <div className="lg:col-span-1">
-                      {loadingContributors || !contributors ? (
-                        <Skeleton className="h-[350px]" />
-                      ) : (
-                        <ContributorsList data={contributors} />
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Row 4: Language Chart & Insights Panel */}
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="lg:col-span-1">
-                      {loadingOverview || !overview ? (
-                        <Skeleton className="h-[280px]" />
-                      ) : (
-                        <LanguageChart languages={overview.languages} />
-                      )}
-                    </div>
-                    <div className="lg:col-span-2">
-                      {loadingAnalysis || !analysis ? (
-                        <Skeleton className="h-[280px]" />
-                      ) : (
-                        <InsightsPanel insights={analysis.insights} />
-                      )}
-                    </div>
-                  </div>
+                    </>
+                  ) : (
+                    <EmptyStateWorkspace />
+                  )}
                 </div>
               )}
 
               {activeTab === 'overview' && (
-                <div className="animate-fadeIn">
-                  {loadingOverview || !overview ? (
+                <div className="animate-fadeIn space-y-6">
+                  {/* Dashboard Repository Switcher Search Card */}
+                  <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-5 shadow-soft">
+                    <form onSubmit={handleSubmit} className="flex flex-col md:flex-row items-center gap-3">
+                      <div className="flex items-center gap-2 text-text-heading min-w-[200px] flex-shrink-0">
+                        <Search className="w-4.5 h-4.5 text-brand-primary" />
+                        <span className="text-[13px] font-extrabold uppercase tracking-wide">Analyze Main Repository</span>
+                      </div>
+                      
+                      <div className="relative w-full flex-1">
+                        <input
+                          type="text"
+                          value={inputValue}
+                          onChange={(e) => {
+                            setInputValue(e.target.value);
+                            if (error) setError(null);
+                          }}
+                          className="block w-full rounded-[8px] border border-border-card dark:border-slate-800 bg-bg-main dark:bg-[#1E293B] py-2 pl-3 text-[13px] text-text-heading placeholder-text-muted focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
+                          placeholder="Paste GitHub Repository URL or type 'owner/repo'..."
+                        />
+                      </div>
+
+                      <button
+                        type="submit"
+                        className="w-full md:w-auto px-5 py-2 text-[13px] font-bold rounded-[8px] text-white bg-brand-primary hover:bg-brand-primary-hover transition-colors shadow-soft cursor-pointer flex items-center justify-center gap-1.5"
+                      >
+                        Analyze
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </form>
+
+                    {error && (
+                      <div className="flex items-start gap-2 text-red-600 text-[12px] bg-red-50 dark:bg-red-950/10 p-2.5 rounded-lg border border-red-100 dark:border-red-900/20 mt-3">
+                        <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                        <span>{error}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {loadingOverview ? (
                     <Skeleton className="h-[450px]" />
-                  ) : (
+                  ) : overview ? (
                     <RepositoryOverview data={overview} />
+                  ) : (
+                    <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-10 text-center text-text-secondary border-dashed">
+                      <Activity className="w-12 h-12 text-brand-primary mx-auto mb-3 animate-pulse" />
+                      <h3 className="text-[16px] font-bold text-text-heading">Ready for Analysis</h3>
+                      <p className="text-[13px] text-text-muted mt-1 max-w-sm mx-auto">
+                        Copy-paste a GitHub repository URL or type an owner/repository path in the input box above to fetch insights.
+                      </p>
+                    </div>
                   )}
                 </div>
               )}
 
               {activeTab === 'commits' && (
                 <div className="space-y-6 animate-fadeIn">
-                  {loadingCommits || !commits ? (
+                  {loadingCommits ? (
                     <Skeleton className="h-[400px]" />
-                  ) : (
+                  ) : commits ? (
                     <>
                       <CommitAnalysis data={commits} />
                       <RecentCommitsTable commits={commits.recentCommits} />
                     </>
+                  ) : (
+                    <EmptyStateWorkspace />
                   )}
                 </div>
               )}
 
               {activeTab === 'contributors' && (
                 <div className="max-w-2xl mx-auto animate-fadeIn">
-                  {loadingContributors || !contributors ? (
+                  {loadingContributors ? (
                     <Skeleton className="h-[400px]" />
-                  ) : (
+                  ) : contributors ? (
                     <ContributorsList data={contributors} />
+                  ) : (
+                    <EmptyStateWorkspace />
                   )}
                 </div>
               )}
 
               {activeTab === 'quality' && (
                 <div className="animate-fadeIn">
-                  {loadingAnalysis || !analysis || loadingCommits || !commits ? (
+                  {loadingAnalysis || loadingCommits ? (
                     <Skeleton className="h-[260px]" />
-                  ) : (
+                  ) : analysis && commits ? (
                     <HealthScore data={analysis} commits={commits.recentCommits} />
+                  ) : (
+                    <EmptyStateWorkspace />
                   )}
                 </div>
               )}
 
               {activeTab === 'insights' && (
                 <div className="max-w-3xl mx-auto animate-fadeIn">
-                  {loadingAnalysis || !analysis ? (
+                  {loadingAnalysis ? (
                     <Skeleton className="h-[400px]" />
-                  ) : (
+                  ) : analysis ? (
                     <InsightsPanel insights={analysis.insights} />
+                  ) : (
+                    <EmptyStateWorkspace />
                   )}
                 </div>
               )}
