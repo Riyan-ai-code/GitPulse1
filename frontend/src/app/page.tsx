@@ -698,13 +698,20 @@ export default function LandingPage() {
         {/* Auth status block */}
         {currentUser && (
           <div className="px-3 py-3 border-t border-border-card mt-3 no-print">
-            <div className="flex items-center justify-between px-3 py-2 bg-slate-50 dark:bg-bg-secondary/40 rounded-lg">
+            <div className="flex items-center justify-between px-2 py-2 bg-slate-50 dark:bg-bg-secondary/40 rounded-lg">
               <div className="flex items-center gap-2 overflow-hidden">
-                <img src={currentUser.avatar_url} alt="" className="w-5 h-5 rounded-full object-cover" />
-                <span className="text-[12.5px] font-bold text-text-primary truncate">{currentUser.login}</span>
+                <img src={currentUser.avatar_url} alt="" className="w-6 h-6 rounded-full object-cover" />
+                <span className="text-[13px] font-bold text-text-primary truncate" title={currentUser.login}>
+                  {currentUser.login}
+                </span>
               </div>
-              <button onClick={handleLogout} className="text-text-muted hover:text-brand-red cursor-pointer">
-                <LogOut className="w-3.5 h-3.5" />
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-1 px-2 py-1 rounded bg-red-500/10 hover:bg-red-500/20 text-brand-red text-[11px] font-bold transition-all cursor-pointer"
+                title="Log Out"
+              >
+                <LogOut className="w-3 h-3" />
+                Logout
               </button>
             </div>
           </div>
