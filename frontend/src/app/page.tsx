@@ -638,6 +638,44 @@ export default function LandingPage() {
               </button>
             </div>
           </nav>
+
+          {/* Recently Audited (Sidebar Section) */}
+          <div className="px-4 py-2 border-t border-border-card mt-2 no-print">
+            <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider block mb-2">Recent Audits</span>
+            {!currentUser ? (
+              <div className="p-3 bg-slate-50 dark:bg-bg-secondary/40 rounded-lg text-center border border-dashed border-border-card space-y-2">
+                <span className="text-[11.5px] font-medium text-text-secondary block leading-normal">Sign in to unlock history</span>
+                <a
+                  href="http://localhost:5000/api/auth/github"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-white bg-slate-900 hover:bg-slate-800 transition-colors rounded shadow-xs cursor-pointer w-full justify-center"
+                >
+                  <Lock className="w-3 h-3 text-white" />
+                  Sign In
+                </a>
+              </div>
+            ) : historyList.length === 0 ? (
+              <span className="text-[12px] text-text-muted italic block px-2">No audits yet.</span>
+            ) : (
+              <div className="space-y-1 max-h-40 overflow-y-auto pr-1">
+                {historyList.slice(0, 4).map((repo) => (
+                  <button
+                    key={`${repo.owner}/${repo.repo}`}
+                    onClick={() => handleExampleSelect(repo.owner, repo.repo)}
+                    className="w-full flex items-center justify-between px-2 py-1.5 rounded-md text-[12px] font-semibold text-text-secondary hover:bg-bg-secondary hover:text-text-heading transition-colors cursor-pointer text-left gap-1"
+                  >
+                    <span className="truncate flex-1" title={`${repo.owner}/${repo.repo}`}>
+                      {repo.owner}/{repo.repo}
+                    </span>
+                    <span className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded flex-shrink-0 ${
+                      repo.score >= 90 ? 'bg-emerald-500/10 text-brand-emerald' : repo.score >= 70 ? 'bg-amber-500/10 text-brand-amber' : 'bg-red-500/10 text-brand-red'
+                    }`}>
+                      {repo.score}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Bottom Menu */}
