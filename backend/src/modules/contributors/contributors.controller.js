@@ -1,4 +1,5 @@
 import * as contributorsService from './contributors.service.js';
+import * as fileDb from '../../shared/db/fileDb.js';
 
 export const getContributors = async (req, res, next) => {
   const { owner, repo } = req.query;
@@ -10,8 +11,15 @@ export const getContributors = async (req, res, next) => {
     });
   }
 
+  const cacheKey = `contributors:${owner.toLowerCase()}/${repo.toLowerCase()}`;
+  const cachedData = fileDb.getCache(cacheKey);
+  if (cachedData) {
+    return res.json(cachedData);
+  }
+
   try {
     const data = await contributorsService.getContributorsList(owner, repo);
+    fileDb.setCache(cacheKey, data);
     return res.json(data);
   } catch (error) {
     next(error);

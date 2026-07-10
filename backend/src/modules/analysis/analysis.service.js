@@ -4,6 +4,7 @@ import * as commitsService from '../commits/commits.service.js';
 import * as contributorsService from '../contributors/contributors.service.js';
 import { calculateHealthScore } from './rules/healthScore.js';
 import { generateInsights } from './rules/insights.js';
+import { logAudit } from '../../shared/db/fileDb.js';
 
 export const analyzeRepository = async (owner, repo) => {
   // 1. Fetch data from other modules concurrently (internal orchestration)
@@ -53,6 +54,17 @@ export const analyzeRepository = async (owner, repo) => {
     readmeExists,
     daysSinceLastCommit
   });
+
+  // Log successful analysis into local database history
+  logAudit(
+    owner,
+    repo,
+    healthResults.score,
+    overview.stars,
+    overview.forks,
+    overview.primaryLanguage,
+    overview.version
+  );
 
   return {
     healthScore: healthResults.score,

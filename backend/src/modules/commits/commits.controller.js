@@ -1,4 +1,5 @@
 import * as commitsService from './commits.service.js';
+import * as fileDb from '../../shared/db/fileDb.js';
 
 export const getCommits = async (req, res, next) => {
   const { owner, repo } = req.query;
@@ -10,8 +11,15 @@ export const getCommits = async (req, res, next) => {
     });
   }
 
+  const cacheKey = `commits:${owner.toLowerCase()}/${repo.toLowerCase()}`;
+  const cachedData = fileDb.getCache(cacheKey);
+  if (cachedData) {
+    return res.json(cachedData);
+  }
+
   try {
     const stats = await commitsService.getCommitStats(owner, repo);
+    fileDb.setCache(cacheKey, stats);
     return res.json(stats);
   } catch (error) {
     next(error);

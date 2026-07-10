@@ -21,7 +21,9 @@ import {
   PieChart,
   GitFork,
   AlertCircle,
-  Search
+  Search,
+  GitPullRequest,
+  LogOut
 } from 'lucide-react';
 import {
   fetchRepositoryOverview,
@@ -46,6 +48,8 @@ import HealthScore from '../components/HealthScore';
 import ComparisonPanel from '../components/ComparisonPanel';
 import RecentCommitsTable from '../components/RecentCommitsTable';
 import InsightsPanel from '../components/InsightsPanel';
+import PrsIssuesPanel from '../components/PrsIssuesPanel';
+import Skeleton from '../components/Skeleton';
 
 const GithubIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
@@ -79,7 +83,7 @@ const GithubIconLarge = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-type TabType = 'dashboard' | 'overview' | 'commits' | 'contributors' | 'quality' | 'insights' | 'compare';
+type TabType = 'dashboard' | 'overview' | 'commits' | 'contributors' | 'quality' | 'insights' | 'compare' | 'prs-issues';
 
 export default function LandingPage() {
   const [analyzedRepo, setAnalyzedRepo] = useState<{ owner: string; repo: string } | null>(null);
@@ -87,6 +91,63 @@ export default function LandingPage() {
   const [error, setError] = useState<string | null>(null);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showBadgeModal, setShowBadgeModal] = useState(false);
+  const [historyList, setHistoryList] = useState<any[]>([]);
+  const [currentUser, setCurrentUser] = useState<{ login: string; avatar_url: string; html_url: string } | null>(null);
+  const [loadingUser, setLoadingUser] = useState(true);
+
+  // Load audit history
+  const loadHistoryList = async () => {
+    try {
+      const res = await fetch('http://localhost:5000/api/repository/history', {
+        credentials: 'include'
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setHistoryList(data);
+      }
+    } catch (err) {
+      console.error('[Landing] Failed to load history:', err);
+    }
+  };
+
+  const checkAuthStatus = async () => {
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/user', {
+        credentials: 'include'
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.authenticated) {
+          setCurrentUser(data.user);
+        } else {
+          setCurrentUser(null);
+        }
+      }
+    } catch (err) {
+      console.error('[Auth] Failed to load user session:', err);
+    } finally {
+      setLoadingUser(false);
+    }
+  };
+
+  useEffect(() => {
+    checkAuthStatus();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include'
+      });
+      if (res.ok) {
+        setCurrentUser(null);
+        alert('Logged out successfully.');
+      }
+    } catch (err) {
+      console.error('[Auth] Logout failed:', err);
+    }
+  };
 
   // Dashboard states
   const [activeTab, setActiveTab] = useState<TabType>('overview');
@@ -181,6 +242,8 @@ export default function LandingPage() {
         setLoadingContributors(false);
         setLoadingAnalysis(false);
       }
+    } else {
+      loadHistoryList();
     }
   }, [analyzedRepo]);
 
@@ -222,9 +285,6 @@ export default function LandingPage() {
     </div>
   );
 
-  const Skeleton = ({ className = 'h-32' }) => (
-    <div className={`animate-pulse bg-slate-100 dark:bg-bg-secondary rounded-[12px] border border-border-card ${className}`} />
-  );
 
   const getHealthBadgeStyles = (score: number) => {
     if (score >= 90) return 'text-brand-emerald bg-emerald-50 dark:bg-emerald-950/20';
@@ -388,6 +448,52 @@ export default function LandingPage() {
                 </div>
               ))}
             </div>
+
+          {/* Recently Audited Feed */}
+          {historyList.length > 0 && (
+            <div className="space-y-4 pt-6">
+              <div className="flex items-center gap-2.5 text-[#E5E7EB] justify-center md:justify-start">
+                <h2 className="text-[14px] font-bold">Recently Audited Repositories</h2>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 animate-fadeIn">
+                {historyList.slice(0, 6).map((repo) => (
+                  <div
+                    key={`${repo.owner}/${repo.repo}`}
+                    className="bg-white border border-[#E2E8F0] rounded-[12px] p-5 shadow-sm text-left flex flex-col justify-between h-44"
+                  >
+                    <div>
+                      <div className="flex justify-between items-start gap-1">
+                        <h3 className="text-[14px] font-bold text-slate-800 truncate" title={`${repo.owner}/${repo.repo}`}>
+                          {repo.owner}/{repo.repo}
+                        </h3>
+                        <span className={`text-[11px] font-extrabold px-2 py-0.5 rounded-full ${
+                          repo.score >= 90 ? 'bg-emerald-100 text-brand-emerald' : repo.score >= 70 ? 'bg-amber-100 text-brand-amber' : 'bg-red-100 text-brand-red'
+                        }`}>
+                          {repo.score}/100
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-400 mt-1">
+                        Analyzed {new Date(repo.analyzedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                      </p>
+                      <div className="flex gap-2 items-center text-[11px] text-slate-500 mt-3 pt-2 border-t border-slate-100">
+                        <span>★ {repo.stars.toLocaleString()}</span>
+                        <span>•</span>
+                        <span>{repo.primaryLanguage}</span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleExampleSelect(repo.owner, repo.repo)}
+                      className="mt-3 inline-flex items-center gap-1 text-[12px] font-bold text-blue-600 hover:text-blue-700 cursor-pointer"
+                    >
+                      View Report
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           </div>
 
         </div>
@@ -484,7 +590,7 @@ export default function LandingPage() {
               Insights
             </button>
 
-            <div className="pt-2 border-t border-border-card mt-2 no-print">
+            <div className="pt-2 border-t border-border-card mt-2 no-print flex flex-col gap-1">
               <button
                 onClick={() => setActiveTab('compare')}
                 className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-[14px] font-semibold transition-colors cursor-pointer ${
@@ -495,6 +601,18 @@ export default function LandingPage() {
               >
                 <GitCompare className="w-[18px] h-[18px]" />
                 Compare Repos
+              </button>
+
+              <button
+                onClick={() => setActiveTab('prs-issues')}
+                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-[14px] font-semibold transition-colors cursor-pointer ${
+                  activeTab === 'prs-issues'
+                    ? 'bg-brand-primary-light text-brand-primary dark:bg-brand-primary/10'
+                    : 'text-text-secondary hover:bg-bg-secondary hover:text-text-heading'
+                }`}
+              >
+                <GitPullRequest className="w-[18px] h-[18px]" />
+                PRs & Issues
               </button>
             </div>
           </nav>
@@ -510,6 +628,31 @@ export default function LandingPage() {
             <Info className="w-4 h-4" />
             About
           </span>
+        </div>
+
+        {/* Auth status block */}
+        <div className="px-3 py-3 border-t border-border-card mt-3 no-print">
+          {loadingUser ? (
+            <Skeleton className="h-9 w-full" />
+          ) : currentUser ? (
+            <div className="flex items-center justify-between px-3 py-2 bg-slate-50 dark:bg-bg-secondary/40 rounded-lg">
+              <div className="flex items-center gap-2 overflow-hidden">
+                <img src={currentUser.avatar_url} alt="" className="w-5 h-5 rounded-full object-cover" />
+                <span className="text-[12.5px] font-bold text-text-primary truncate">{currentUser.login}</span>
+              </div>
+              <button onClick={handleLogout} className="text-text-muted hover:text-brand-red cursor-pointer">
+                <LogOut className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ) : (
+            <a
+              href="http://localhost:5000/api/auth/github"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-[12.5px] font-bold text-white bg-slate-900 hover:bg-slate-800 transition-all cursor-pointer shadow-soft"
+            >
+              <GithubIcon className="w-4 h-4 text-white" />
+              Sign in with GitHub
+            </a>
+          )}
         </div>
       </aside>
 
@@ -938,6 +1081,16 @@ export default function LandingPage() {
               {activeTab === 'compare' && (
                 <div className="animate-fadeIn">
                   <ComparisonPanel />
+                </div>
+              )}
+
+              {activeTab === 'prs-issues' && (
+                <div className="max-w-4xl mx-auto animate-fadeIn">
+                  {overview ? (
+                    <PrsIssuesPanel owner={overview.owner.login} repo={overview.name} />
+                  ) : (
+                    <EmptyStateWorkspace />
+                  )}
                 </div>
               )}
   

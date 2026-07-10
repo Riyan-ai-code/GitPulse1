@@ -1,5 +1,6 @@
 import axios from 'axios';
 import dotenv from 'dotenv';
+import { authLocalStorage } from '../context/authContext.js';
 
 dotenv.config();
 
@@ -12,12 +13,19 @@ const githubClient = axios.create({
   }
 });
 
-// Inject Authorization header if GITHUB_TOKEN environment variable is present
-if (process.env.GITHUB_TOKEN) {
-  githubClient.defaults.headers.common['Authorization'] = `token ${process.env.GITHUB_TOKEN}`;
-  console.log('[GitHub Client] Authorization token injected successfully.');
-} else {
-  console.warn('[GitHub Client] No GITHUB_TOKEN environment variable detected. Running unauthenticated (subject to low rate limits).');
-}
+// Request interceptor to dynamically inject the user's OAuth token if present
+githubClient.interceptors.request.use((config) => {
+  const userToken = authLocalStorage.getStore();
+  if (userToken) {
+    config.headers['Authorization'] = `Bearer ${userToken}`;
+  } else if (process.env.GITHUB_TOKEN) {
+    config.headers['Authorization'] = `token ${process.env.GITHUB_TOKEN}`;
+  } else {
+    delete config.headers['Authorization'];
+  }
+  return config;
+}, (error) => {
+  return Promise.reject(error);
+});
 
 export default githubClient;

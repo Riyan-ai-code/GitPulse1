@@ -4,12 +4,32 @@ import repositoryRoutes from './modules/repository/repository.routes.js';
 import commitsRoutes from './modules/commits/commits.routes.js';
 import contributorsRoutes from './modules/contributors/contributors.routes.js';
 import analysisRoutes from './modules/analysis/analysis.routes.js';
+import authRoutes from './modules/auth/auth.routes.js';
 import errorHandler from './shared/middleware/errorHandler.js';
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:3000',
+  credentials: true
+}));
 app.use(express.json());
+
+// Continuation Local Storage context middleware to isolate request cookies/tokens
+import { authLocalStorage } from './shared/context/authContext.js';
+app.use((req, res, next) => {
+  const rawCookieHeader = req.headers.cookie || '';
+  const cookies = Object.fromEntries(
+    rawCookieHeader.split('; ').map(c => {
+      const parts = c.split('=');
+      return [parts[0], parts.slice(1).join('=')];
+    })
+  );
+  const token = cookies.github_oauth_token || null;
+  authLocalStorage.run(token, () => {
+    next();
+  });
+});
 
 // Main backend health check endpoint
 app.get('/health', (req, res) => {
@@ -21,6 +41,7 @@ app.get('/health', (req, res) => {
 });
 
 // Mount modules (Modular Monolith)
+app.use('/api/auth', authRoutes);
 app.use('/api/repository', repositoryRoutes);
 app.use('/api/commits', commitsRoutes);
 app.use('/api/contributors', contributorsRoutes);
