@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-brand-primary: var(--brand-primary);
   --color-brand-primary-hover: var(--brand-primary-hover);
