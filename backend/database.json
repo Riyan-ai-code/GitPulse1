@@ -2582,6 +2582,577 @@
         }
       },
       "expiresAt": 1783706607028
+    },
+    {
+      "key": "overview:stutikatiyar/vigilxi",
+      "data": {
+        "name": "VigilXi",
+        "owner": {
+          "login": "stutikatiyar",
+          "avatar_url": "https://avatars.githubusercontent.com/u/171247284?v=4",
+          "html_url": "https://github.com/stutikatiyar"
+        },
+        "description": "No description provided.",
+        "stars": 0,
+        "forks": 0,
+        "watchers": 0,
+        "primaryLanguage": "TypeScript",
+        "license": "No License",
+        "size": 116207,
+        "openIssuesCount": 0,
+        "hasIssues": true,
+        "createdAt": "2026-05-19T10:57:43Z",
+        "updatedAt": "2026-06-28T15:30:11Z",
+        "languages": [
+          {
+            "language": "TypeScript",
+            "bytes": 63353,
+            "percentage": 71.1
+          },
+          {
+            "language": "Python",
+            "bytes": 24286,
+            "percentage": 27.3
+          },
+          {
+            "language": "JavaScript",
+            "bytes": 559,
+            "percentage": 0.6
+          },
+          {
+            "language": "CSS",
+            "bytes": 443,
+            "percentage": 0.5
+          },
+          {
+            "language": "Shell",
+            "bytes": 410,
+            "percentage": 0.5
+          }
+        ],
+        "topics": [],
+        "version": null
+      },
+      "expiresAt": 1783706933230
+    },
+    {
+      "key": "commits:stutikatiyar/vigilxi",
+      "data": {
+        "totalCommits": 33,
+        "lastCommitDate": "2026-06-28T15:29:57Z",
+        "commitsLast30Days": 20,
+        "commits30to60DaysAgo": 13,
+        "recentCommits": [
+          {
+            "sha": "d771b9bed72f8e09a7a7b8dbcf885a225be5a419",
+            "author": {
+              "name": "Stutiiienough",
+              "login": "stutikatiyar",
+              "avatar_url": "https://avatars.githubusercontent.com/u/171247284?v=4"
+            },
+            "message": "docs: add debugging notes and error resolution guide",
+            "date": "2026-06-28T15:29:57Z",
+            "html_url": "https://github.com/stutikatiyar/VigilXi/commit/d771b9bed72f8e09a7a7b8dbcf885a225be5a419"
+          },
+          {
+            "sha": "99491ef0b18a9c97c33c9ae3b304c18f7cb0f490",
+            "author": {
+              "name": "Stutiiienough",
+              "login": "stutikatiyar",
+              "avatar_url": "https://avatars.githubusercontent.com/u/171247284?v=4"
+            },
+            "message": "feat(dashboard): enhance system status and monitoring",
+            "date": "2026-06-28T15:29:50Z",
+            "html_url": "https://github.com/stutikatiyar/VigilXi/commit/99491ef0b18a9c97c33c9ae3b304c18f7cb0f490"
+          },
+          {
+            "sha": "261d293e8486cfd9d4e19ad7221dccf259d440e1",
+            "author": {
+              "name": "Stutiiienough",
+              "login": "stutikatiyar",
+              "avatar_url": "https://avatars.githubusercontent.com/u/171247284?v=4"
+            },
+            "message": "feat(frontend): improve surveillance analysis workflow",
+            "date": "2026-06-28T15:29:43Z",
+            "html_url": "https://github.com/stutikatiyar/VigilXi/commit/261d293e8486cfd9d4e19ad7221dccf259d440e1"
+          },
+          {
+            "sha": "d1bf6cea0de53de0dac21244613e05ec5468e8b0",
+            "author": {
+              "name": "Stutiiienough",
+              "login": "stutikatiyar",
+              "avatar_url": "https://avatars.githubusercontent.com/u/171247284?v=4"
+            },
+            "message": "feat(ai): optimize YOLO detection pipeline and backend processing",
+            "date": "2026-06-28T15:29:36Z",
+            "html_url": "https://github.com/stutikatiyar/VigilXi/commit/d1bf6cea0de53de0dac21244613e05ec5468e8b0"
+          },
+          {
+            "sha": "b7bafbd991e750d117bf56ed268a13534ef015e3",
+            "author": {
+              "name": "Stutiiienough",
+              "login": "stutikatiyar",
+              "avatar_url": "https://avatars.githubusercontent.com/u/171247284?v=4"
+            },
+            "message": "feat: refactor frontend into components, add performance dashboard, orbital tech stack, animations",
+            "date": "2026-06-28T12:25:44Z",
+            "html_url": "https://github.com/stutikatiyar/VigilXi/commit/b7bafbd991e750d117bf56ed268a13534ef015e3"
+          },
+          {
+            "sha": "7861435e2d2c45a26de8adf2d4d1a66409dbc162",
+            "author": {
+              "name": "Stutiiienough",
+              "login": "stutikatiyar",
+              "avatar_url": "https://avatars.githubusercontent.com/u/171247284?v=4"
+            },
+            "message": "chore: update git ignore rules",
+            "date": "2026-06-27T18:36:31Z",
+            "html_url": "https://github.com/stutikatiyar/VigilXi/commit/7861435e2d2c45a26de8adf2d4d1a66409dbc162"
+          },
+          {
+            "sha": "e105c194f270c63038cf784f5c279f539b0f692c",
+            "author": {
+              "name": "Stutiiienough",
+              "login": "stutikatiyar",
+              "avatar_url": "https://avatars.githubusercontent.com/u/171247284?v=4"
+            },
+            "message": "chore(frontend): update project dependencies",
+            "date": "2026-06-27T18:36:17Z",
+            "html_url": "https://github.com/stutikatiyar/VigilXi/commit/e105c194f270c63038cf784f5c279f539b0f692c"
+          },
+          {
+            "sha": "17ecb91eea8cd1bb7e7c0bce66b048b0e588c696",
+            "author": {
+              "name": "Stutiiienough",
+              "login": "stutikatiyar",
+              "avatar_url": "https://avatars.githubusercontent.com/u/171247284?v=4"
+            },
+            "message": "feat(home): redesign landing page experience",
+            "date": "2026-06-27T18:36:05Z",
+            "html_url": "https://github.com/stutikatiyar/VigilXi/commit/17ecb91eea8cd1bb7e7c0bce66b048b0e588c696"
+          },
+          {
+            "sha": "5ea4ad32a4c56c7e40ab823a21bfa5fe15929765",
+            "author": {
+              "name": "Stutiiienough",
+              "login": "stutikatiyar",
+              "avatar_url": "https://avatars.githubusercontent.com/u/171247284?v=4"
+            },
+            "message": "feat(frontend): improve asynchronous analysis workflow",
+            "date": "2026-06-27T18:35:53Z",
+            "html_url": "https://github.com/stutikatiyar/VigilXi/commit/5ea4ad32a4c56c7e40ab823a21bfa5fe15929765"
+          },
+          {
+            "sha": "cf7a3e2d7dd2d9b672a3f58e113223f0d9489f86",
+            "author": {
+              "name": "Stutiiienough",
+              "login": "stutikatiyar",
+              "avatar_url": "https://avatars.githubusercontent.com/u/171247284?v=4"
+            },
+            "message": "feat(metrics): measure AI pipeline performance",
+            "date": "2026-06-27T18:35:39Z",
+            "html_url": "https://github.com/stutikatiyar/VigilXi/commit/cf7a3e2d7dd2d9b672a3f58e113223f0d9489f86"
+          },
+          {
+            "sha": "ee74016d955dc775de9db7f39190fef92b306ba2",
+            "author": {
+              "name": "Stutiiienough",
+              "login": "stutikatiyar",
+              "avatar_url": "https://avatars.githubusercontent.com/u/171247284?v=4"
+            },
+            "message": "feat(database): integrate Supabase PostgreSQL persistence",
+            "date": "2026-06-27T18:35:23Z",
+            "html_url": "https://github.com/stutikatiyar/VigilXi/commit/ee74016d955dc775de9db7f39190fef92b306ba2"
+          },
+          {
+            "sha": "bd891f97d9722d063b07211169bbc635ec642616",
+            "author": {
+              "name": "Stutiiienough",
+              "login": "stutikatiyar",
+              "avatar_url": "https://avatars.githubusercontent.com/u/171247284?v=4"
+            },
+            "message": "chore: remove model weights from repository",
+            "date": "2026-06-27T09:58:25Z",
+            "html_url": "https://github.com/stutikatiyar/VigilXi/commit/bd891f97d9722d063b07211169bbc635ec642616"
+          },
+          {
+            "sha": "dd6f69a21e90c3bd022591fd1032914cc7721e7a",
+            "author": {
+              "name": "Stutiiienough",
+              "login": "stutikatiyar",
+              "avatar_url": "https://avatars.githubusercontent.com/u/171247284?v=4"
+            },
+            "message": "feat(frontend): integrate asynchronous video analysis workflow",
+            "date": "2026-06-27T09:58:16Z",
+            "html_url": "https://github.com/stutikatiyar/VigilXi/commit/dd6f69a21e90c3bd022591fd1032914cc7721e7a"
+          },
+          {
+            "sha": "cf162add35f25e7473b741a9ac959eb8d04e80db",
+            "author": {
+              "name": "Stutiiienough",
+              "login": "stutikatiyar",
+              "avatar_url": "https://avatars.githubusercontent.com/u/171247284?v=4"
+            },
+            "message": "feat(ai): improve object detection pipeline",
+            "date": "2026-06-27T09:58:08Z",
+            "html_url": "https://github.com/stutikatiyar/VigilXi/commit/cf162add35f25e7473b741a9ac959eb8d04e80db"
+          },
+          {
+            "sha": "6384df00173f408f1f0cfaa6e56259489382c4b2",
+            "author": {
+              "name": "Stutiiienough",
+              "login": "stutikatiyar",
+              "avatar_url": "https://avatars.githubusercontent.com/u/171247284?v=4"
+            },
+            "message": "feat(ai): integrate pose-based activity analysis",
+            "date": "2026-06-27T09:58:01Z",
+            "html_url": "https://github.com/stutikatiyar/VigilXi/commit/6384df00173f408f1f0cfaa6e56259489382c4b2"
+          },
+          {
+            "sha": "33597666950d3f1b3a0e2289578ede71b9d7ee7b",
+            "author": {
+              "name": "Stutiiienough",
+              "login": "stutikatiyar",
+              "avatar_url": "https://avatars.githubusercontent.com/u/171247284?v=4"
+            },
+            "message": "chore: configure development environment",
+            "date": "2026-06-27T09:57:54Z",
+            "html_url": "https://github.com/stutikatiyar/VigilXi/commit/33597666950d3f1b3a0e2289578ede71b9d7ee7b"
+          },
+          {
+            "sha": "667ccd22fc325dd8f423230bb1334a56674c0edb",
+            "author": {
+              "name": "Stutiiienough",
+              "login": "stutikatiyar",
+              "avatar_url": "https://avatars.githubusercontent.com/u/171247284?v=4"
+            },
+            "message": "docs: improve project documentation and debugging guides",
+            "date": "2026-06-27T09:57:46Z",
+            "html_url": "https://github.com/stutikatiyar/VigilXi/commit/667ccd22fc325dd8f423230bb1334a56674c0edb"
+          },
+          {
+            "sha": "d5c2ccb4f914e12fe015f6b3e1b4ca650724877e",
+            "author": {
+              "name": "Stutiiienough",
+              "login": "stutikatiyar",
+              "avatar_url": "https://avatars.githubusercontent.com/u/171247284?v=4"
+            },
+            "message": "chore: add gitignore rules for snapshots, processed videos, model weights",
+            "date": "2026-06-25T20:57:29Z",
+            "html_url": "https://github.com/stutikatiyar/VigilXi/commit/d5c2ccb4f914e12fe015f6b3e1b4ca650724877e"
+          },
+          {
+            "sha": "2b8bbb4d5a8830300866813ce35226b76453f459",
+            "author": {
+              "name": "Stutiiienough",
+              "login": "stutikatiyar",
+              "avatar_url": "https://avatars.githubusercontent.com/u/171247284?v=4"
+            },
+            "message": "fix: move CORS middleware before static mounts",
+            "date": "2026-06-25T20:55:12Z",
+            "html_url": "https://github.com/stutikatiyar/VigilXi/commit/2b8bbb4d5a8830300866813ce35226b76453f459"
+          },
+          {
+            "sha": "59861f80f0bfdbfeef47e037147a9515a80b3443",
+            "author": {
+              "name": "Stutiiienough",
+              "login": "stutikatiyar",
+              "avatar_url": "https://avatars.githubusercontent.com/u/171247284?v=4"
+            },
+            "message": "feat(frontend): improve surveillance analysis upload workflow",
+            "date": "2026-06-25T17:07:56Z",
+            "html_url": "https://github.com/stutikatiyar/VigilXi/commit/59861f80f0bfdbfeef47e037147a9515a80b3443"
+          },
+          {
+            "sha": "5c78febfc9e399bef6bfbb6d807612ecfc4a7614",
+            "author": {
+              "name": "stka23aiml-beep",
+              "login": "stutikatiyar",
+              "avatar_url": "https://avatars.githubusercontent.com/u/171247284?v=4"
+            },
+            "message": "Improved video processing loading experience",
+            "date": "2026-05-30T10:22:46Z",
+            "html_url": "https://github.com/stutikatiyar/VigilXi/commit/5c78febfc9e399bef6bfbb6d807612ecfc4a7614"
+          },
+          {
+            "sha": "2a63e583973bd61e642a91509e55e1c7fe1fed87",
+            "author": {
+              "name": "stka23aiml-beep",
+              "login": "stutikatiyar",
+              "avatar_url": "https://avatars.githubusercontent.com/u/171247284?v=4"
+            },
+            "message": "Added project roadmap and feature planning",
+            "date": "2026-05-29T08:08:04Z",
+            "html_url": "https://github.com/stutikatiyar/VigilXi/commit/2a63e583973bd61e642a91509e55e1c7fe1fed87"
+          },
+          {
+            "sha": "c1e579937810c329f0c9b8f14ab45d8f05f11078",
+            "author": {
+              "name": "Stutiiienough",
+              "login": "stutikatiyar",
+              "avatar_url": "https://avatars.githubusercontent.com/u/171247284?v=4"
+            },
+            "message": "Update README.md",
+            "date": "2026-05-27T18:27:42Z",
+            "html_url": "https://github.com/stutikatiyar/VigilXi/commit/c1e579937810c329f0c9b8f14ab45d8f05f11078"
+          },
+          {
+            "sha": "7f139c3e1f9f9be6301ca561697e93df3161c890",
+            "author": {
+              "name": "stka23aiml-beep",
+              "login": "stutikatiyar",
+              "avatar_url": "https://avatars.githubusercontent.com/u/171247284?v=4"
+            },
+            "message": "Improved surveillance detection pipeline and added CV testing analysis workflow",
+            "date": "2026-05-27T18:25:45Z",
+            "html_url": "https://github.com/stutikatiyar/VigilXi/commit/7f139c3e1f9f9be6301ca561697e93df3161c890"
+          },
+          {
+            "sha": "d433751ef641283d5b68d301c195bab6134cf6ee",
+            "author": {
+              "name": "stka23aiml-beep",
+              "login": "stutikatiyar",
+              "avatar_url": "https://avatars.githubusercontent.com/u/171247284?v=4"
+            },
+            "message": "Updated VigilX documentation and project architecture",
+            "date": "2026-05-27T16:03:23Z",
+            "html_url": "https://github.com/stutikatiyar/VigilXi/commit/d433751ef641283d5b68d301c195bab6134cf6ee"
+          },
+          {
+            "sha": "7c914f0eb73ef5fba2d472d91dd83ef1e0d6acf5",
+            "author": {
+              "name": "stka23aiml-beep",
+              "login": "stutikatiyar",
+              "avatar_url": "https://avatars.githubusercontent.com/u/171247284?v=4"
+            },
+            "message": "Improved interaction detection and traffic intelligence analysis",
+            "date": "2026-05-27T15:55:08Z",
+            "html_url": "https://github.com/stutikatiyar/VigilXi/commit/7c914f0eb73ef5fba2d472d91dd83ef1e0d6acf5"
+          },
+          {
+            "sha": "ad2d156057e22a4f3c3ebad996edb55634e3a3db",
+            "author": {
+              "name": "stka23aiml-beep",
+              "login": "stutikatiyar",
+              "avatar_url": "https://avatars.githubusercontent.com/u/171247284?v=4"
+            },
+            "message": "Updated Code",
+            "date": "2026-05-25T11:18:50Z",
+            "html_url": "https://github.com/stutikatiyar/VigilXi/commit/ad2d156057e22a4f3c3ebad996edb55634e3a3db"
+          },
+          {
+            "sha": "6c290790d61718da71efd146516da022ad4e07a2",
+            "author": {
+              "name": "stka23aiml-beep",
+              "login": "stutikatiyar",
+              "avatar_url": "https://avatars.githubusercontent.com/u/171247284?v=4"
+            },
+            "message": "Removed large model files from tracking",
+            "date": "2026-05-21T17:08:10Z",
+            "html_url": "https://github.com/stutikatiyar/VigilXi/commit/6c290790d61718da71efd146516da022ad4e07a2"
+          },
+          {
+            "sha": "104f428f61bb0bfe2a54f0624d162426cda292aa",
+            "author": {
+              "name": "stka23aiml-beep",
+              "login": "stka23aiml-beep",
+              "avatar_url": "https://avatars.githubusercontent.com/u/232881819?v=4"
+            },
+            "message": "Added AI surveillance system",
+            "date": "2026-05-19T18:00:01Z",
+            "html_url": "https://github.com/stutikatiyar/VigilXi/commit/104f428f61bb0bfe2a54f0624d162426cda292aa"
+          },
+          {
+            "sha": "5f6ce11920584950c353e5a515c5083abdb34207",
+            "author": {
+              "name": "stka23aiml-beep",
+              "login": "stka23aiml-beep",
+              "avatar_url": "https://avatars.githubusercontent.com/u/232881819?v=4"
+            },
+            "message": "Added AI surveillance processing pipeline",
+            "date": "2026-05-19T17:52:36Z",
+            "html_url": "https://github.com/stutikatiyar/VigilXi/commit/5f6ce11920584950c353e5a515c5083abdb34207"
+          },
+          {
+            "sha": "a272fb7530aec8463045509daf3db39c4a6c781a",
+            "author": {
+              "name": "Stuti Katiyar",
+              "login": "stutikatiyar",
+              "avatar_url": "https://avatars.githubusercontent.com/u/171247284?v=4"
+            },
+            "message": "Update README with image and VigilX section\n\nAdded an image and a section on how VigilX works.",
+            "date": "2026-05-19T17:49:31Z",
+            "html_url": "https://github.com/stutikatiyar/VigilXi/commit/a272fb7530aec8463045509daf3db39c4a6c781a"
+          },
+          {
+            "sha": "1b1629bdb122b468b342254f5d97ad255026aa2a",
+            "author": {
+              "name": "Stuti Katiyar",
+              "login": "stutikatiyar",
+              "avatar_url": "https://avatars.githubusercontent.com/u/171247284?v=4"
+            },
+            "message": "Update README with YOLOv8 detection features",
+            "date": "2026-05-19T17:48:35Z",
+            "html_url": "https://github.com/stutikatiyar/VigilXi/commit/1b1629bdb122b468b342254f5d97ad255026aa2a"
+          },
+          {
+            "sha": "ffc1662bcf455cf580b18415616da2c468f1cfa7",
+            "author": {
+              "name": "stka23aiml-beep",
+              "login": "stka23aiml-beep",
+              "avatar_url": "https://avatars.githubusercontent.com/u/232881819?v=4"
+            },
+            "message": "Initial commit - VigilX AI surveillance system",
+            "date": "2026-05-19T10:58:42Z",
+            "html_url": "https://github.com/stutikatiyar/VigilXi/commit/ffc1662bcf455cf580b18415616da2c468f1cfa7"
+          }
+        ],
+        "activityGraph": [
+          {
+            "date": "2026-06-11",
+            "commits": 0
+          },
+          {
+            "date": "2026-06-12",
+            "commits": 0
+          },
+          {
+            "date": "2026-06-13",
+            "commits": 0
+          },
+          {
+            "date": "2026-06-14",
+            "commits": 0
+          },
+          {
+            "date": "2026-06-15",
+            "commits": 0
+          },
+          {
+            "date": "2026-06-16",
+            "commits": 0
+          },
+          {
+            "date": "2026-06-17",
+            "commits": 0
+          },
+          {
+            "date": "2026-06-18",
+            "commits": 0
+          },
+          {
+            "date": "2026-06-19",
+            "commits": 0
+          },
+          {
+            "date": "2026-06-20",
+            "commits": 0
+          },
+          {
+            "date": "2026-06-21",
+            "commits": 0
+          },
+          {
+            "date": "2026-06-22",
+            "commits": 0
+          },
+          {
+            "date": "2026-06-23",
+            "commits": 0
+          },
+          {
+            "date": "2026-06-24",
+            "commits": 0
+          },
+          {
+            "date": "2026-06-25",
+            "commits": 3
+          },
+          {
+            "date": "2026-06-26",
+            "commits": 0
+          },
+          {
+            "date": "2026-06-27",
+            "commits": 12
+          },
+          {
+            "date": "2026-06-28",
+            "commits": 5
+          },
+          {
+            "date": "2026-06-29",
+            "commits": 0
+          },
+          {
+            "date": "2026-06-30",
+            "commits": 0
+          },
+          {
+            "date": "2026-07-01",
+            "commits": 0
+          },
+          {
+            "date": "2026-07-02",
+            "commits": 0
+          },
+          {
+            "date": "2026-07-03",
+            "commits": 0
+          },
+          {
+            "date": "2026-07-04",
+            "commits": 0
+          },
+          {
+            "date": "2026-07-05",
+            "commits": 0
+          },
+          {
+            "date": "2026-07-06",
+            "commits": 0
+          },
+          {
+            "date": "2026-07-07",
+            "commits": 0
+          },
+          {
+            "date": "2026-07-08",
+            "commits": 0
+          },
+          {
+            "date": "2026-07-09",
+            "commits": 0
+          },
+          {
+            "date": "2026-07-10",
+            "commits": 0
+          }
+        ]
+      },
+      "expiresAt": 1783706936484
+    },
+    {
+      "key": "prs-issues:stutikatiyar/vigilxi",
+      "data": {
+        "prs": {
+          "total": 0,
+          "open": 0,
+          "closed": 0,
+          "avgMergeTimeHours": null,
+          "recent": []
+        },
+        "issues": {
+          "total": 0,
+          "open": 0,
+          "closed": 0,
+          "avgResolutionTimeHours": null,
+          "staleCount": 0,
+          "staleList": [],
+          "recent": []
+        }
+      },
+      "expiresAt": 1783706961399
     }
   ],
   "history": [
