@@ -251,6 +251,7 @@ export default function LandingPage() {
 
   const handleExampleSelect = (owner: string, repo: string) => {
     setAnalyzedRepo({ owner, repo });
+    setActiveTab('overview');
   };
 
   const resetSearch = () => {
