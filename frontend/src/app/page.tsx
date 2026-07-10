@@ -24,7 +24,8 @@ import {
   Search,
   GitPullRequest,
   LogOut,
-  Lock
+  Lock,
+  History
 } from 'lucide-react';
 import {
   fetchRepositoryOverview,
@@ -84,7 +85,7 @@ const GithubIconLarge = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-type TabType = 'dashboard' | 'overview' | 'commits' | 'contributors' | 'quality' | 'insights' | 'compare' | 'prs-issues';
+type TabType = 'dashboard' | 'overview' | 'commits' | 'contributors' | 'quality' | 'insights' | 'compare' | 'prs-issues' | 'recent-audits';
 
 export default function LandingPage() {
   const [analyzedRepo, setAnalyzedRepo] = useState<{ owner: string; repo: string } | null>(null);
@@ -571,46 +572,20 @@ export default function LandingPage() {
                 <GitPullRequest className="w-[18px] h-[18px]" />
                 PRs & Issues
               </button>
+
+              <button
+                onClick={() => setActiveTab('recent-audits')}
+                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-[14px] font-semibold transition-colors cursor-pointer ${
+                  activeTab === 'recent-audits'
+                    ? 'bg-brand-primary-light text-brand-primary dark:bg-brand-primary/10'
+                    : 'text-text-secondary hover:bg-bg-secondary hover:text-text-heading'
+                }`}
+              >
+                <History className="w-[18px] h-[18px]" />
+                Recent Audits
+              </button>
             </div>
           </nav>
-
-          {/* Recently Audited (Sidebar Section) */}
-          <div className="px-4 py-2 border-t border-border-card mt-2 no-print">
-            <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider block mb-2">Recent Audits</span>
-            {!currentUser ? (
-              <div className="p-3 bg-slate-50 dark:bg-bg-secondary/40 rounded-lg text-center border border-dashed border-border-card space-y-2">
-                <span className="text-[11.5px] font-medium text-text-secondary block leading-normal">Sign in to unlock history</span>
-                <a
-                  href="http://localhost:5000/api/auth/github"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-white bg-slate-900 hover:bg-slate-800 transition-colors rounded shadow-xs cursor-pointer w-full justify-center"
-                >
-                  <Lock className="w-3 h-3 text-white" />
-                  Sign In
-                </a>
-              </div>
-            ) : historyList.length === 0 ? (
-              <span className="text-[12px] text-text-muted italic block px-2">No audits yet.</span>
-            ) : (
-              <div className="space-y-1 max-h-40 overflow-y-auto pr-1">
-                {historyList.slice(0, 4).map((repo) => (
-                  <button
-                    key={`${repo.owner}/${repo.repo}`}
-                    onClick={() => handleExampleSelect(repo.owner, repo.repo)}
-                    className="w-full flex items-center justify-between px-2 py-1.5 rounded-md text-[12px] font-semibold text-text-secondary hover:bg-bg-secondary hover:text-text-heading transition-colors cursor-pointer text-left gap-1"
-                  >
-                    <span className="truncate flex-1" title={`${repo.owner}/${repo.repo}`}>
-                      {repo.owner}/{repo.repo}
-                    </span>
-                    <span className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded flex-shrink-0 ${
-                      repo.score >= 90 ? 'bg-emerald-500/10 text-brand-emerald' : repo.score >= 70 ? 'bg-amber-500/10 text-brand-amber' : 'bg-red-500/10 text-brand-red'
-                    }`}>
-                      {repo.score}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
         </div>
 
         {/* Bottom Menu */}
@@ -1096,6 +1071,79 @@ export default function LandingPage() {
                     <PrsIssuesPanel owner={overview.owner.login} repo={overview.name} />
                   ) : (
                     <EmptyStateWorkspace />
+                  )}
+                </div>
+              )}
+
+              {activeTab === 'recent-audits' && (
+                <div className="max-w-4xl mx-auto space-y-6 animate-fadeIn">
+                  <div className="flex items-center gap-2.5 text-text-heading border-b border-border-divider pb-3">
+                    <History className="w-5 h-5 text-brand-primary" />
+                    <h2 className="text-[16px] font-bold">Recent Audits History</h2>
+                  </div>
+
+                  {!currentUser ? (
+                    <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-8 text-center flex flex-col items-center justify-center space-y-4 max-w-md mx-auto">
+                      <div className="p-3 rounded-full bg-slate-50 dark:bg-bg-secondary/40 text-slate-400">
+                        <Lock className="w-6 h-6" />
+                      </div>
+                      <div className="space-y-1">
+                        <h3 className="text-[14px] font-bold text-text-heading">History Locked</h3>
+                        <p className="text-[12px] text-text-secondary max-w-xs mx-auto leading-relaxed">
+                          Sign in with GitHub to view recently audited repositories and unlock private codebase analysis.
+                        </p>
+                      </div>
+                      <a
+                        href="http://localhost:5000/api/auth/github"
+                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[12.5px] font-bold text-white bg-slate-900 hover:bg-slate-800 transition-colors rounded-lg shadow-soft cursor-pointer"
+                      >
+                        <GithubIcon className="w-4 h-4 text-white" />
+                        Sign in with GitHub
+                      </a>
+                    </div>
+                  ) : historyList.length === 0 ? (
+                    <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-8 text-center text-text-secondary border-dashed max-w-md mx-auto">
+                      <History className="w-8 h-8 text-text-muted mx-auto mb-2 animate-pulse" />
+                      <h3 className="text-[14px] font-bold text-text-heading">No Audits Found</h3>
+                      <p className="text-[12px] text-text-muted mt-1">You haven't audited any repositories yet.</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {historyList.map((repo) => (
+                        <div
+                          key={`${repo.owner}/${repo.repo}`}
+                          className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-5 shadow-soft hover:shadow-hover-card transition-shadow duration-200 text-left flex flex-col justify-between h-44"
+                        >
+                          <div>
+                            <div className="flex justify-between items-start gap-1">
+                              <h3 className="text-[13.5px] font-bold text-text-heading truncate" title={`${repo.owner}/${repo.repo}`}>
+                                {repo.owner}/{repo.repo}
+                              </h3>
+                              <span className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded flex-shrink-0 ${
+                                repo.score >= 90 ? 'bg-emerald-500/10 text-brand-emerald' : repo.score >= 70 ? 'bg-amber-500/10 text-brand-amber' : 'bg-red-500/10 text-brand-red'
+                              }`}>
+                                {repo.score}/100
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-text-muted mt-1">
+                              Audited {new Date(repo.analyzedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                            </p>
+                            <div className="flex gap-2 items-center text-[11px] text-text-secondary mt-3.5 pt-2.5 border-t border-border-divider/50">
+                              <span>★ {repo.stars.toLocaleString()}</span>
+                              <span>•</span>
+                              <span>{repo.primaryLanguage}</span>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => handleExampleSelect(repo.owner, repo.repo)}
+                            className="mt-3 inline-flex items-center gap-1 text-[12px] font-bold text-blue-600 hover:text-blue-700 cursor-pointer text-left w-fit"
+                          >
+                            View Report
+                            <ArrowRight className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
               )}
