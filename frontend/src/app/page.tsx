@@ -153,6 +153,14 @@ export default function LandingPage() {
 
   // Dashboard states
   const [activeTab, setActiveTab] = useState<TabType>('overview');
+  const [tabHistory, setTabHistory] = useState<TabType[]>([]);
+
+  const navigateToTab = (tab: TabType, pushToHistory = true) => {
+    if (pushToHistory && activeTab !== tab) {
+      setTabHistory(prev => [...prev, activeTab]);
+    }
+    setActiveTab(tab);
+  };
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
 
   // Progressive loading states
@@ -317,9 +325,9 @@ export default function LandingPage() {
       }
 
       if (tabParam) {
-        setActiveTab(tabParam);
+        navigateToTab(tabParam, false);
       } else {
-        setActiveTab('overview');
+        navigateToTab('overview', false);
       }
     };
 
@@ -334,6 +342,7 @@ export default function LandingPage() {
 
   const handleExampleSelect = (owner: string, repo: string) => {
     setAnalyzedRepo({ owner, repo });
+    setTabHistory([]);
     setActiveTab('overview');
   };
 
@@ -344,6 +353,7 @@ export default function LandingPage() {
     setCommits(null);
     setContributors(null);
     setAnalysis(null);
+    setTabHistory([]);
     setActiveTab('overview');
     setInputValue('');
   };
@@ -561,7 +571,7 @@ export default function LandingPage() {
           {/* Navigation Links */}
           <nav className="px-3 space-y-1">
             <button
-              onClick={() => setActiveTab('dashboard')}
+              onClick={() => navigateToTab('dashboard')}
               className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-[14px] font-semibold transition-colors cursor-pointer ${
                 activeTab === 'dashboard'
                   ? 'bg-brand-primary-light text-brand-primary dark:bg-brand-primary/10'
@@ -573,7 +583,7 @@ export default function LandingPage() {
             </button>
 
             <button
-              onClick={() => setActiveTab('overview')}
+              onClick={() => navigateToTab('overview')}
               className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-[14px] font-semibold transition-colors cursor-pointer ${
                 activeTab === 'overview'
                   ? 'bg-brand-primary-light text-brand-primary dark:bg-brand-primary/10'
@@ -585,7 +595,7 @@ export default function LandingPage() {
             </button>
 
             <button
-              onClick={() => setActiveTab('commits')}
+              onClick={() => navigateToTab('commits')}
               className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-[14px] font-semibold transition-colors cursor-pointer ${
                 activeTab === 'commits'
                   ? 'bg-brand-primary-light text-brand-primary dark:bg-brand-primary/10'
@@ -597,7 +607,7 @@ export default function LandingPage() {
             </button>
 
             <button
-              onClick={() => setActiveTab('contributors')}
+              onClick={() => navigateToTab('contributors')}
               className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-[14px] font-semibold transition-colors cursor-pointer ${
                 activeTab === 'contributors'
                   ? 'bg-brand-primary-light text-brand-primary dark:bg-brand-primary/10'
@@ -609,7 +619,7 @@ export default function LandingPage() {
             </button>
 
             <button
-              onClick={() => setActiveTab('quality')}
+              onClick={() => navigateToTab('quality')}
               className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-[14px] font-semibold transition-colors cursor-pointer ${
                 activeTab === 'quality'
                   ? 'bg-brand-primary-light text-brand-primary dark:bg-brand-primary/10'
@@ -621,7 +631,7 @@ export default function LandingPage() {
             </button>
 
             <button
-              onClick={() => setActiveTab('insights')}
+              onClick={() => navigateToTab('insights')}
               className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-[14px] font-semibold transition-colors cursor-pointer ${
                 activeTab === 'insights'
                   ? 'bg-brand-primary-light text-brand-primary dark:bg-brand-primary/10'
@@ -634,7 +644,7 @@ export default function LandingPage() {
 
             <div className="pt-2 border-t border-border-card mt-2 no-print flex flex-col gap-1">
               <button
-                onClick={() => setActiveTab('compare')}
+                onClick={() => navigateToTab('compare')}
                 className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-[14px] font-semibold transition-colors cursor-pointer ${
                   activeTab === 'compare'
                     ? 'bg-brand-primary-light text-brand-primary dark:bg-brand-primary/10'
@@ -646,7 +656,7 @@ export default function LandingPage() {
               </button>
 
               <button
-                onClick={() => setActiveTab('prs-issues')}
+                onClick={() => navigateToTab('prs-issues')}
                 className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-[14px] font-semibold transition-colors cursor-pointer ${
                   activeTab === 'prs-issues'
                     ? 'bg-brand-primary-light text-brand-primary dark:bg-brand-primary/10'
@@ -658,7 +668,7 @@ export default function LandingPage() {
               </button>
 
               <button
-                onClick={() => setActiveTab('recent-audits')}
+                onClick={() => navigateToTab('recent-audits')}
                 className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-[14px] font-semibold transition-colors cursor-pointer ${
                   activeTab === 'recent-audits'
                     ? 'bg-brand-primary-light text-brand-primary dark:bg-brand-primary/10'
@@ -708,8 +718,10 @@ export default function LandingPage() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => {
-                if (activeTab !== 'overview') {
-                  setActiveTab('overview');
+                if (tabHistory.length > 0) {
+                  const previousTab = tabHistory[tabHistory.length - 1];
+                  setTabHistory(prev => prev.slice(0, prev.length - 1));
+                  setActiveTab(previousTab);
                 } else {
                   if (analyzedRepo && (analyzedRepo.owner || analyzedRepo.repo)) {
                     setAnalyzedRepo({ owner: '', repo: '' });
