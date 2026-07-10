@@ -6,7 +6,7 @@ import { calculateHealthScore } from './rules/healthScore.js';
 import { generateInsights } from './rules/insights.js';
 import { logAudit } from '../../shared/db/fileDb.js';
 
-export const analyzeRepository = async (owner, repo) => {
+export const analyzeRepository = async (owner, repo, { skipHistory = false } = {}) => {
   // 1. Fetch data from other modules concurrently (internal orchestration)
   const [overview, commitStats, contributorsList] = await Promise.all([
     repositoryService.getRepositoryOverview(owner, repo),
@@ -55,16 +55,18 @@ export const analyzeRepository = async (owner, repo) => {
     daysSinceLastCommit
   });
 
-  // Log successful analysis into local database history
-  logAudit(
-    owner,
-    repo,
-    healthResults.score,
-    overview.stars,
-    overview.forks,
-    overview.primaryLanguage,
-    overview.version
-  );
+  // Log successful analysis into local database history (skip for examples & guests)
+  if (!skipHistory) {
+    logAudit(
+      owner,
+      repo,
+      healthResults.score,
+      overview.stars,
+      overview.forks,
+      overview.primaryLanguage,
+      overview.version
+    );
+  }
 
   return {
     healthScore: healthResults.score,

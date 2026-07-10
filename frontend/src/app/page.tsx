@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Activity,
   ArrowRight,
@@ -96,6 +96,9 @@ export default function LandingPage() {
   const [historyList, setHistoryList] = useState<any[]>([]);
   const [currentUser, setCurrentUser] = useState<{ login: string; avatar_url: string; html_url: string } | null>(null);
   const [loadingUser, setLoadingUser] = useState(true);
+
+  // Ref to track whether the next analysis should skip history logging
+  const shouldSkipHistoryRef = useRef(true);
 
   // Load audit history
   const loadHistoryList = async () => {
@@ -227,7 +230,7 @@ export default function LandingPage() {
         setLoadingContributors(false);
       });
 
-    fetchAnalysis(owner, repo)
+    fetchAnalysis(owner, repo, shouldSkipHistoryRef.current)
       .then((res) => {
         setAnalysis(res);
         setLoadingAnalysis(false);
@@ -342,6 +345,7 @@ export default function LandingPage() {
   }, []);
 
   const handleExampleSelect = (owner: string, repo: string) => {
+    shouldSkipHistoryRef.current = true; // Example repos never go to history
     setAnalyzedRepo({ owner, repo });
     setTabHistory([]);
     setActiveTab('overview');
@@ -369,6 +373,8 @@ export default function LandingPage() {
       return;
     }
 
+    // Only log to history when a signed-in user uses the search bar
+    shouldSkipHistoryRef.current = !currentUser;
     setAnalyzedRepo(parsed);
   };
 

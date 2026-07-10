@@ -37,8 +37,8 @@ export const fetchContributors = async (owner: string, repo: string): Promise<Co
   return handleResponse(response);
 };
 
-export const fetchAnalysis = async (owner: string, repo: string): Promise<RepositoryAnalysis> => {
-  const response = await fetch(`${API_BASE_URL}/analysis?owner=${encodeURIComponent(owner)}&repo=${encodeURIComponent(repo)}`, {
+export const fetchAnalysis = async (owner: string, repo: string, skipHistory: boolean = false): Promise<RepositoryAnalysis> => {
+  const response = await fetch(`${API_BASE_URL}/analysis?owner=${encodeURIComponent(owner)}&repo=${encodeURIComponent(repo)}&skipHistory=${skipHistory}`, {
     credentials: 'include'
   });
   return handleResponse(response);
