@@ -3245,9 +3245,88 @@
         ]
       },
       "expiresAt": 1783707247395
+    },
+    {
+      "key": "analysis:riyan-ai-code/deep-guard-backend",
+      "data": {
+        "healthScore": 55,
+        "healthBreakdown": [
+          {
+            "metric": "README File Present",
+            "passed": true,
+            "score": 15,
+            "maxScore": 15,
+            "description": "Project contains documentation."
+          },
+          {
+            "metric": "Open Source License",
+            "passed": false,
+            "score": 0,
+            "maxScore": 5,
+            "description": "No open-source license found."
+          },
+          {
+            "metric": "Issues Enabled",
+            "passed": false,
+            "score": 0,
+            "maxScore": 10,
+            "description": "Issues are disabled."
+          },
+          {
+            "metric": "Contributor Base",
+            "passed": true,
+            "score": 10,
+            "maxScore": 20,
+            "description": "3 active contributors found."
+          },
+          {
+            "metric": "Recent Activity (30 Days)",
+            "passed": false,
+            "score": 10,
+            "maxScore": 25,
+            "description": "1 commits in the last 30 days."
+          },
+          {
+            "metric": "Commit Recency",
+            "passed": true,
+            "score": 20,
+            "maxScore": 25,
+            "description": "Last commit was 9 days ago (active)."
+          }
+        ],
+        "insights": [
+          {
+            "text": "Repository is actively maintained (recent changes made within 2 weeks).",
+            "type": "success"
+          },
+          {
+            "text": "Development velocity decreased by 50% this month compared to last month.",
+            "type": "warning"
+          },
+          {
+            "text": "Codebase is highly specialized, primarily written in JavaScript (98.6%).",
+            "type": "info"
+          },
+          {
+            "text": "Caution: No open-source license detected. Verify terms before cloning or copying code.",
+            "type": "warning"
+          }
+        ]
+      },
+      "expiresAt": 1783709511340
     }
   ],
   "history": [
+    {
+      "owner": "Riyan-ai-code",
+      "repo": "Deep-Guard-Backend",
+      "score": 55,
+      "stars": 0,
+      "forks": 0,
+      "primaryLanguage": "JavaScript",
+      "version": null,
+      "analyzedAt": "2026-07-10T17:51:51.330Z"
+    },
     {
       "owner": "stutikatiyar",
       "repo": "VigilXi",

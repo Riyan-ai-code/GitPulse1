@@ -450,72 +450,7 @@ export default function LandingPage() {
               ))}
             </div>
 
-          {/* Recently Audited Feed */}
-          <div className="space-y-4 pt-6">
-            <div className="flex items-center gap-2.5 text-[#E5E7EB] justify-center md:justify-start">
-              <h2 className="text-[14px] font-bold">Recently Audited Repositories</h2>
-            </div>
-            
-            {!currentUser ? (
-              <div className="bg-white border border-[#E2E8F0] rounded-[12px] p-6 shadow-sm text-center flex flex-col items-center justify-center space-y-3 max-w-md mx-auto">
-                <div className="p-3 rounded-full bg-slate-50 text-slate-400">
-                  <Lock className="w-6 h-6" />
-                </div>
-                <div className="space-y-1">
-                  <h3 className="text-[14px] font-bold text-slate-800">History Gated</h3>
-                  <p className="text-[12px] text-slate-500 max-w-xs mx-auto leading-relaxed font-normal">
-                    Sign in with GitHub to view recently audited repositories and unlock private codebase analysis.
-                  </p>
-                </div>
-                <a
-                  href="http://localhost:5000/api/auth/github"
-                  className="inline-flex items-center gap-2 px-5 py-2 text-[12.5px] font-bold text-white bg-slate-900 hover:bg-slate-800 transition-colors rounded-lg shadow-soft cursor-pointer"
-                >
-                  <GithubIcon className="w-4 h-4 text-white" />
-                  Sign in with GitHub
-                </a>
-              </div>
-            ) : historyList.length === 0 ? (
-              <div className="text-center py-6 text-[12.5px] text-slate-400">No repositories audited yet.</div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 animate-fadeIn">
-                {historyList.slice(0, 6).map((repo) => (
-                  <div
-                    key={`${repo.owner}/${repo.repo}`}
-                    className="bg-white border border-[#E2E8F0] rounded-[12px] p-5 shadow-sm text-left flex flex-col justify-between h-44"
-                  >
-                    <div>
-                      <div className="flex justify-between items-start gap-1">
-                        <h3 className="text-[14px] font-bold text-slate-800 truncate" title={`${repo.owner}/${repo.repo}`}>
-                          {repo.owner}/{repo.repo}
-                        </h3>
-                        <span className={`text-[11px] font-extrabold px-2 py-0.5 rounded-full ${
-                          repo.score >= 90 ? 'bg-emerald-100 text-brand-emerald' : repo.score >= 70 ? 'bg-amber-100 text-brand-amber' : 'bg-red-100 text-brand-red'
-                        }`}>
-                          {repo.score}/100
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-slate-400 mt-1 font-normal">
-                        Analyzed {new Date(repo.analyzedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
-                      </p>
-                      <div className="flex gap-2 items-center text-[11px] text-slate-500 mt-3 pt-2 border-t border-slate-100 font-normal">
-                        <span>★ {repo.stars.toLocaleString()}</span>
-                        <span>•</span>
-                        <span>{repo.primaryLanguage}</span>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => handleExampleSelect(repo.owner, repo.repo)}
-                      className="mt-3 inline-flex items-center gap-1 text-[12px] font-bold text-blue-600 hover:text-blue-700 cursor-pointer"
-                    >
-                      View Report
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+
           </div>
 
         </div>
@@ -691,10 +626,8 @@ export default function LandingPage() {
         </div>
 
         {/* Auth status block */}
-        <div className="px-3 py-3 border-t border-border-card mt-3 no-print">
-          {loadingUser ? (
-            <Skeleton className="h-9 w-full" />
-          ) : currentUser ? (
+        {currentUser && (
+          <div className="px-3 py-3 border-t border-border-card mt-3 no-print">
             <div className="flex items-center justify-between px-3 py-2 bg-slate-50 dark:bg-bg-secondary/40 rounded-lg">
               <div className="flex items-center gap-2 overflow-hidden">
                 <img src={currentUser.avatar_url} alt="" className="w-5 h-5 rounded-full object-cover" />
@@ -704,16 +637,8 @@ export default function LandingPage() {
                 <LogOut className="w-3.5 h-3.5" />
               </button>
             </div>
-          ) : (
-            <a
-              href="http://localhost:5000/api/auth/github"
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-[12.5px] font-bold text-white bg-slate-900 hover:bg-slate-800 transition-all cursor-pointer shadow-soft"
-            >
-              <GithubIcon className="w-4 h-4 text-white" />
-              Sign in with GitHub
-            </a>
-          )}
-        </div>
+          </div>
+        )}
       </aside>
 
       {/* Main Dashboard Window */}
