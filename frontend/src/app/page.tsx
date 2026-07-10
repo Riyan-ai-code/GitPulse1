@@ -229,6 +229,7 @@ export default function LandingPage() {
       });
   };
 
+  // Load data or clear states on landing page
   useEffect(() => {
     if (analyzedRepo) {
       if (analyzedRepo.owner && analyzedRepo.repo) {
@@ -245,9 +246,91 @@ export default function LandingPage() {
         setLoadingAnalysis(false);
       }
     } else {
+      setError(null);
+      setOverview(null);
+      setCommits(null);
+      setContributors(null);
+      setAnalysis(null);
+      setLoadingOverview(false);
+      setLoadingCommits(false);
+      setLoadingContributors(false);
+      setLoadingAnalysis(false);
       loadHistoryList();
     }
   }, [analyzedRepo]);
+
+  // Push state to browser URL search parameters when analyzedRepo or activeTab changes
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    const params = new URLSearchParams(window.location.search);
+    const currentRepo = params.get('repo');
+    const currentTab = params.get('tab');
+
+    const newRepo = analyzedRepo ? `${analyzedRepo.owner}/${analyzedRepo.repo}` : null;
+    const newTab = activeTab;
+
+    let hasChanged = false;
+
+    if (newRepo) {
+      if (currentRepo !== newRepo) {
+        params.set('repo', newRepo);
+        hasChanged = true;
+      }
+      if (currentTab !== newTab) {
+        params.set('tab', newTab);
+        hasChanged = true;
+      }
+    } else {
+      if (params.has('repo')) {
+        params.delete('repo');
+        params.delete('tab');
+        hasChanged = true;
+      }
+    }
+
+    if (hasChanged) {
+      const newSearch = params.toString() ? `?${params.toString()}` : '/';
+      window.history.pushState({ repo: newRepo, tab: newTab }, '', window.location.pathname + newSearch);
+    }
+  }, [analyzedRepo, activeTab]);
+
+  // Synchronize state from browser URL on popstate (Back/Forward navigation)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleUrlChange = () => {
+      const params = new URLSearchParams(window.location.search);
+      const repoParam = params.get('repo');
+      const tabParam = params.get('tab') as TabType;
+
+      if (repoParam) {
+        const parts = repoParam.split('/');
+        if (parts.length === 2) {
+          setAnalyzedRepo({ owner: parts[0], repo: parts[1] });
+          if (inputValue !== repoParam) {
+            setInputValue(repoParam);
+          }
+        }
+      } else {
+        setAnalyzedRepo(null);
+      }
+
+      if (tabParam) {
+        setActiveTab(tabParam);
+      } else {
+        setActiveTab('overview');
+      }
+    };
+
+    // Run on initial mount to load from deep link
+    handleUrlChange();
+
+    window.addEventListener('popstate', handleUrlChange);
+    return () => {
+      window.removeEventListener('popstate', handleUrlChange);
+    };
+  }, []);
 
   const handleExampleSelect = (owner: string, repo: string) => {
     setAnalyzedRepo({ owner, repo });
@@ -624,7 +707,13 @@ export default function LandingPage() {
         <header className="h-14 border-b border-border-card bg-bg-card px-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
-              onClick={resetSearch}
+              onClick={() => {
+                if (activeTab !== 'overview') {
+                  setActiveTab('overview');
+                } else {
+                  resetSearch();
+                }
+              }}
               className="p-1 rounded-md text-text-secondary hover:bg-bg-secondary hover:text-text-heading transition-colors cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
