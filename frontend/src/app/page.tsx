@@ -144,6 +144,7 @@ export default function LandingPage() {
       });
       if (res.ok) {
         setCurrentUser(null);
+        resetSearch();
         alert('Logged out successfully.');
       }
     } catch (err) {
