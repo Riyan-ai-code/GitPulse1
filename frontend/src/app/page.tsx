@@ -731,7 +731,7 @@ export default function LandingPage() {
                     setAnalysis(null);
                     setInputValue('');
                   } else {
-                    resetSearch();
+                    // Do nothing - stay inside the empty Overview dashboard tab
                   }
                 }
               }}
