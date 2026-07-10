@@ -53,24 +53,32 @@ export const fetchPrsAndIssues = async (owner: string, repo: string): Promise<an
 
 // URL parser to extract owner and repo from various github URL formats or raw strings
 export const parseGitHubUrl = (input: string): { owner: string; repo: string } | null => {
-  const cleanInput = input.trim();
+  let cleanInput = input.trim();
   if (!cleanInput) return null;
 
-  const githubUrlRegex = /(?:https?:\/\/)?(?:www\.)?github\.com\/([a-zA-Z0-9-._]+)\/([a-zA-Z0-9-._]+)(?:\.git)?(?:\/.*)?$/;
-  const match = cleanInput.match(githubUrlRegex);
+  // 1. Remove hash fragments
+  cleanInput = cleanInput.split('#')[0];
 
-  if (match) {
-    return {
-      owner: match[1],
-      repo: match[2].replace(/\/$/, '')
-    };
+  // 2. Remove query parameters
+  cleanInput = cleanInput.split('?')[0];
+
+  // 3. Remove .git suffix if present
+  if (cleanInput.endsWith('.git')) {
+    cleanInput = cleanInput.slice(0, -4);
   }
 
-  const rawParts = cleanInput.split('/');
-  if (rawParts.length === 2 && rawParts[0] && rawParts[1]) {
+  // 4. Remove protocol and host if present
+  cleanInput = cleanInput.replace(/^(?:https?:\/\/)?(?:www\.)?github\.com\//i, '');
+
+  // 5. Remove leading/trailing slashes
+  cleanInput = cleanInput.replace(/^\/+|\/+$/g, '');
+
+  // 6. Split by slash and return owner and repo (first two parts)
+  const parts = cleanInput.split('/');
+  if (parts.length >= 2 && parts[0] && parts[1]) {
     return {
-      owner: rawParts[0].trim(),
-      repo: rawParts[1].trim()
+      owner: parts[0].trim(),
+      repo: parts[1].trim()
     };
   }
 
