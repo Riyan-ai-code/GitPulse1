@@ -23,7 +23,8 @@ import {
   AlertCircle,
   Search,
   GitPullRequest,
-  LogOut
+  LogOut,
+  Lock
 } from 'lucide-react';
 import {
   fetchRepositoryOverview,
@@ -450,12 +451,33 @@ export default function LandingPage() {
             </div>
 
           {/* Recently Audited Feed */}
-          {currentUser && historyList.length > 0 && (
-            <div className="space-y-4 pt-6">
-              <div className="flex items-center gap-2.5 text-[#E5E7EB] justify-center md:justify-start">
-                <h2 className="text-[14px] font-bold">Recently Audited Repositories</h2>
+          <div className="space-y-4 pt-6">
+            <div className="flex items-center gap-2.5 text-[#E5E7EB] justify-center md:justify-start">
+              <h2 className="text-[14px] font-bold">Recently Audited Repositories</h2>
+            </div>
+            
+            {!currentUser ? (
+              <div className="bg-white border border-[#E2E8F0] rounded-[12px] p-6 shadow-sm text-center flex flex-col items-center justify-center space-y-3 max-w-md mx-auto">
+                <div className="p-3 rounded-full bg-slate-50 text-slate-400">
+                  <Lock className="w-6 h-6" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-[14px] font-bold text-slate-800">History Gated</h3>
+                  <p className="text-[12px] text-slate-500 max-w-xs mx-auto leading-relaxed font-normal">
+                    Sign in with GitHub to view recently audited repositories and unlock private codebase analysis.
+                  </p>
+                </div>
+                <a
+                  href="http://localhost:5000/api/auth/github"
+                  className="inline-flex items-center gap-2 px-5 py-2 text-[12.5px] font-bold text-white bg-slate-900 hover:bg-slate-800 transition-colors rounded-lg shadow-soft cursor-pointer"
+                >
+                  <GithubIcon className="w-4 h-4 text-white" />
+                  Sign in with GitHub
+                </a>
               </div>
-              
+            ) : historyList.length === 0 ? (
+              <div className="text-center py-6 text-[12.5px] text-slate-400">No repositories audited yet.</div>
+            ) : (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 animate-fadeIn">
                 {historyList.slice(0, 6).map((repo) => (
                   <div
@@ -473,10 +495,10 @@ export default function LandingPage() {
                           {repo.score}/100
                         </span>
                       </div>
-                      <p className="text-[11px] text-slate-400 mt-1">
+                      <p className="text-[11px] text-slate-400 mt-1 font-normal">
                         Analyzed {new Date(repo.analyzedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
                       </p>
-                      <div className="flex gap-2 items-center text-[11px] text-slate-500 mt-3 pt-2 border-t border-slate-100">
+                      <div className="flex gap-2 items-center text-[11px] text-slate-500 mt-3 pt-2 border-t border-slate-100 font-normal">
                         <span>★ {repo.stars.toLocaleString()}</span>
                         <span>•</span>
                         <span>{repo.primaryLanguage}</span>
@@ -492,8 +514,8 @@ export default function LandingPage() {
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+            )}
+          </div>
           </div>
 
         </div>
