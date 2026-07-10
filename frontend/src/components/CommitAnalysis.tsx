@@ -24,17 +24,22 @@ export const CommitAnalysis: React.FC<Props> = ({ data }) => {
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
-  // Group commits by Day of the Week based on recent commits history
+  // Group commits by Day of the Week based on recent commits history (last 7 days)
   const getDayOfWeekData = () => {
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const counts = { Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0, Sat: 0, Sun: 0 };
     
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    
     data.recentCommits.forEach(c => {
       if (c.date) {
         const d = new Date(c.date);
-        const dayName = days[d.getDay()] as keyof typeof counts;
-        if (counts[dayName] !== undefined) {
-          counts[dayName]++;
+        if (d >= sevenDaysAgo) {
+          const dayName = days[d.getDay()] as keyof typeof counts;
+          if (counts[dayName] !== undefined) {
+            counts[dayName]++;
+          }
         }
       }
     });
@@ -171,7 +176,7 @@ export const CommitAnalysis: React.FC<Props> = ({ data }) => {
               <p className="text-[12px] text-text-secondary">Day-wise distribution of recent commit activity</p>
             </div>
             <div className="text-[11px] font-bold px-2 py-1 bg-slate-100 dark:bg-bg-secondary rounded text-text-secondary">
-              Recent 100 commits
+              Last 7 days
             </div>
           </div>
 
