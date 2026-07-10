@@ -43,6 +43,7 @@ import CommitAnalysis from '../components/CommitAnalysis';
 import ContributorsList from '../components/ContributorsList';
 import LanguageChart from '../components/LanguageChart';
 import HealthScore from '../components/HealthScore';
+import ComparisonPanel from '../components/ComparisonPanel';
 import RecentCommitsTable from '../components/RecentCommitsTable';
 import InsightsPanel from '../components/InsightsPanel';
 
@@ -78,12 +79,14 @@ const GithubIconLarge = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-type TabType = 'dashboard' | 'overview' | 'commits' | 'contributors' | 'quality' | 'insights';
+type TabType = 'dashboard' | 'overview' | 'commits' | 'contributors' | 'quality' | 'insights' | 'compare';
 
 export default function LandingPage() {
   const [analyzedRepo, setAnalyzedRepo] = useState<{ owner: string; repo: string } | null>(null);
   const [inputValue, setInputValue] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const [showBadgeModal, setShowBadgeModal] = useState(false);
 
   // Dashboard states
   const [activeTab, setActiveTab] = useState<TabType>('overview');
@@ -481,11 +484,18 @@ export default function LandingPage() {
               Insights
             </button>
 
-            <div className="pt-2 border-t border-border-card mt-2">
-              <span className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-[14px] font-semibold text-text-muted cursor-not-allowed">
+            <div className="pt-2 border-t border-border-card mt-2 no-print">
+              <button
+                onClick={() => setActiveTab('compare')}
+                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-[14px] font-semibold transition-colors cursor-pointer ${
+                  activeTab === 'compare'
+                    ? 'bg-brand-primary-light text-brand-primary dark:bg-brand-primary/10'
+                    : 'text-text-secondary hover:bg-bg-secondary hover:text-text-heading'
+                }`}
+              >
                 <GitCompare className="w-[18px] h-[18px]" />
-                Compare (Soon)
-              </span>
+                Compare Repos
+              </button>
             </div>
           </nav>
         </div>
@@ -540,11 +550,45 @@ export default function LandingPage() {
             </button>
 
             {overview && (
+              <div className="relative no-print">
+                <button
+                  onClick={() => setShowExportMenu(!showExportMenu)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 border border-border-divider rounded-lg bg-bg-main text-[13px] font-bold text-text-primary hover:bg-bg-secondary transition-colors cursor-pointer"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  Export
+                </button>
+                {showExportMenu && (
+                  <div className="absolute right-0 mt-1.5 w-40 rounded-lg border border-border-divider bg-bg-card shadow-soft z-20 py-1.5 no-print">
+                    <button
+                      onClick={() => {
+                        setShowExportMenu(false);
+                        window.print();
+                      }}
+                      className="w-full text-left px-3.5 py-1.5 text-[12.5px] font-semibold text-text-primary hover:bg-bg-secondary cursor-pointer"
+                    >
+                      Export PDF
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowExportMenu(false);
+                        setShowBadgeModal(true);
+                      }}
+                      className="w-full text-left px-3.5 py-1.5 text-[12.5px] font-semibold text-text-primary hover:bg-bg-secondary cursor-pointer"
+                    >
+                      Markdown Badge
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {overview && (
               <a
                 href={overview.owner.html_url}
                 target="_blank"
                 rel="noreferrer"
-                className="text-text-secondary hover:text-text-heading transition-colors"
+                className="text-text-secondary hover:text-text-heading transition-colors no-print"
               >
                 <GithubIcon />
               </a>
@@ -582,9 +626,11 @@ export default function LandingPage() {
             <div className="space-y-6">
               
               {/* Repository info header card */}
-              {loadingOverview && (
-                <Skeleton className="h-28" />
-              )}
+              {activeTab !== 'compare' && (
+                <>
+                  {loadingOverview && (
+                    <Skeleton className="h-28" />
+                  )}
               
               {!loadingOverview && overview && (
                 <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-6 shadow-soft">
@@ -644,9 +690,11 @@ export default function LandingPage() {
                   </div>
                 </div>
               )}
+            </>
+          )}
 
 
-              {/* Dynamic tabs render */}
+          {/* Dynamic tabs render */}
               {activeTab === 'dashboard' && (
                 <div className="space-y-6">
                   {overview ? (
@@ -751,7 +799,7 @@ export default function LandingPage() {
                           {loadingContributors || !contributors ? (
                             <Skeleton className="h-[350px]" />
                           ) : (
-                            <ContributorsList data={contributors} />
+                            <ContributorsList data={contributors} commits={commits?.recentCommits || []} />
                           )}
                         </div>
                       </div>
@@ -856,7 +904,7 @@ export default function LandingPage() {
                   {loadingContributors ? (
                     <Skeleton className="h-[400px]" />
                   ) : contributors ? (
-                    <ContributorsList data={contributors} />
+                    <ContributorsList data={contributors} commits={commits?.recentCommits || []} />
                   ) : (
                     <EmptyStateWorkspace />
                   )}
@@ -887,11 +935,81 @@ export default function LandingPage() {
                 </div>
               )}
 
+              {activeTab === 'compare' && (
+                <div className="animate-fadeIn">
+                  <ComparisonPanel />
+                </div>
+              )}
+  
             </div>
           )}
         </div>
 
       </div>
+
+      {/* Markdown Badge Modal */}
+      {showBadgeModal && overview && (
+        <div className="fixed inset-0 bg-slate-950/45 backdrop-blur-xs flex items-center justify-center z-50 p-4 no-print animate-fadeIn">
+          <div className="bg-bg-card border border-border-card rounded-[12px] p-6 max-w-md w-full shadow-soft space-y-4 text-left">
+            <div className="flex items-center justify-between border-b border-border-divider pb-2.5">
+              <h3 className="text-[14px] font-bold text-text-heading">README Markdown Badge</h3>
+              <button
+                onClick={() => setShowBadgeModal(false)}
+                className="text-text-muted hover:text-text-secondary cursor-pointer text-[14px]"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <p className="text-[12px] text-text-secondary leading-normal">
+              Copy and paste the markdown code below into your project's `README.md` to showcase your repository health score on GitHub!
+            </p>
+
+            {/* Badge Preview */}
+            <div className="p-4 bg-slate-50 dark:bg-bg-secondary/40 border border-border-divider rounded-lg flex flex-col items-center justify-center gap-2">
+              <span className="text-[10px] font-bold text-text-muted uppercase">Badge Preview</span>
+              <img
+                src={`https://img.shields.io/badge/GitPulse%20Health-${analysis?.healthScore || 80}%2F100-${analysis?.healthScore && analysis.healthScore >= 90 ? 'emerald' : analysis?.healthScore && analysis.healthScore >= 70 ? 'amber' : 'red'}`}
+                alt="GitPulse Health Badge"
+              />
+            </div>
+
+            {/* Markdown Code */}
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold text-text-secondary uppercase">Markdown Code</label>
+              <div className="relative">
+                <textarea
+                  readOnly
+                  rows={2}
+                  value={`[![GitPulse Health Score](https://img.shields.io/badge/GitPulse%20Health-${analysis?.healthScore || 80}%2F100-${analysis?.healthScore && analysis.healthScore >= 90 ? 'emerald' : analysis?.healthScore && analysis.healthScore >= 70 ? 'amber' : 'red'})](http://localhost:3000)`}
+                  className="block w-full rounded-md border border-border-divider bg-bg-main dark:bg-[#1E293B] p-2.5 text-[11.5px] font-mono text-text-heading focus:outline-none resize-none"
+                  onClick={(e) => (e.target as HTMLTextAreaElement).select()}
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-border-divider">
+              <button
+                onClick={() => {
+                  const mdText = `[![GitPulse Health Score](https://img.shields.io/badge/GitPulse%20Health-${analysis?.healthScore || 80}%2F100-${analysis?.healthScore && analysis.healthScore >= 90 ? 'emerald' : analysis?.healthScore && analysis.healthScore >= 70 ? 'amber' : 'red'})](http://localhost:3000)`;
+                  navigator.clipboard.writeText(mdText);
+                  alert('Markdown badge code copied to clipboard!');
+                }}
+                className="px-4 py-2 bg-brand-primary hover:bg-brand-primary-hover text-[12.5px] font-bold text-white rounded-lg cursor-pointer transition-colors shadow-soft"
+              >
+                Copy Markdown
+              </button>
+              <button
+                onClick={() => setShowBadgeModal(false)}
+                className="px-4 py-2 border border-border-divider text-[12.5px] font-bold text-text-secondary hover:bg-bg-secondary rounded-lg cursor-pointer transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
