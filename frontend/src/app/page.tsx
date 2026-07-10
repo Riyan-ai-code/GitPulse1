@@ -450,7 +450,7 @@ export default function LandingPage() {
             </div>
 
           {/* Recently Audited Feed */}
-          {historyList.length > 0 && (
+          {currentUser && historyList.length > 0 && (
             <div className="space-y-4 pt-6">
               <div className="flex items-center gap-2.5 text-[#E5E7EB] justify-center md:justify-start">
                 <h2 className="text-[14px] font-bold">Recently Audited Repositories</h2>
