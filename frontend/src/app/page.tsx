@@ -35,7 +35,8 @@ import {
   fetchAnalysis,
   parseGitHubUrl,
   deleteRepoHistory,
-  deleteRepoAnalysis
+  deleteRepoAnalysis,
+  fetchCodebaseComposition
 } from '../lib/api';
 import {
   RepositoryOverview as RepositoryOverviewType,
@@ -53,6 +54,7 @@ import HealthScore from '../components/HealthScore';
 import ComparisonPanel from '../components/ComparisonPanel';
 import RecentCommitsTable from '../components/RecentCommitsTable';
 import InsightsPanel from '../components/InsightsPanel';
+import CodebaseComposition from '../components/CodebaseComposition';
 import PrsIssuesPanel from '../components/PrsIssuesPanel';
 import Skeleton from '../components/Skeleton';
 
@@ -175,11 +177,13 @@ export default function LandingPage() {
   const [commits, setCommits] = useState<CommitStatsType | null>(null);
   const [contributors, setContributors] = useState<ContributorsListType | null>(null);
   const [analysis, setAnalysis] = useState<RepositoryAnalysisType | null>(null);
+  const [composition, setComposition] = useState<any | null>(null);
 
   const [loadingOverview, setLoadingOverview] = useState(true);
   const [loadingCommits, setLoadingCommits] = useState(true);
   const [loadingContributors, setLoadingContributors] = useState(true);
   const [loadingAnalysis, setLoadingAnalysis] = useState(true);
+  const [loadingComposition, setLoadingComposition] = useState(true);
 
   // Sync theme
   useEffect(() => {
@@ -198,6 +202,7 @@ export default function LandingPage() {
     setLoadingCommits(true);
     setLoadingContributors(true);
     setLoadingAnalysis(true);
+    setLoadingComposition(true);
 
     try {
       const overviewRes = await fetchRepositoryOverview(owner, repo);
@@ -242,6 +247,16 @@ export default function LandingPage() {
         console.error(err);
         setLoadingAnalysis(false);
       });
+
+    fetchCodebaseComposition(owner, repo)
+      .then((res) => {
+        setComposition(res);
+        setLoadingComposition(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setLoadingComposition(false);
+      });
   };
 
   // Load data or clear states on landing page
@@ -255,10 +270,12 @@ export default function LandingPage() {
         setCommits(null);
         setContributors(null);
         setAnalysis(null);
+        setComposition(null);
         setLoadingOverview(false);
         setLoadingCommits(false);
         setLoadingContributors(false);
         setLoadingAnalysis(false);
+        setLoadingComposition(false);
       }
     } else {
       setError(null);
@@ -266,10 +283,12 @@ export default function LandingPage() {
       setCommits(null);
       setContributors(null);
       setAnalysis(null);
+      setComposition(null);
       setLoadingOverview(false);
       setLoadingCommits(false);
       setLoadingContributors(false);
       setLoadingAnalysis(false);
+      setLoadingComposition(false);
       loadHistoryList();
     }
   }, [analyzedRepo]);
@@ -1075,9 +1094,22 @@ export default function LandingPage() {
                           {loadingAnalysis || !analysis ? (
                             <Skeleton className="h-[280px]" />
                           ) : (
-                            <InsightsPanel insights={analysis.insights} />
+                            <InsightsPanel 
+                              insights={analysis.insights} 
+                              overview={overview}
+                              commits={commits}
+                              contributors={contributors}
+                            />
                           )}
                         </div>
+                      </div>
+
+                      {/* Row 5: Codebase Composition Treemap Explorer */}
+                      <div className="grid grid-cols-1 gap-6">
+                        <CodebaseComposition 
+                          compositionData={composition} 
+                          loading={loadingComposition} 
+                        />
                       </div>
                     </>
                   ) : (

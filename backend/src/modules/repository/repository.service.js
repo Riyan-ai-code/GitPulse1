@@ -166,3 +166,90 @@ export const getPrsAndIssuesStats = async (owner, repo) => {
     }
   };
 };
+
+export const getCodebaseComposition = async (owner, repo) => {
+  // 1. Fetch repo details to get default branch
+  const { data: repoData } = await githubClient.get(`/repos/${owner}/${repo}`);
+  const defaultBranch = repoData.default_branch || 'main';
+
+  // 2. Fetch recursive git tree
+  let treeData = [];
+  try {
+    const { data: treeRes } = await githubClient.get(`/repos/${owner}/${repo}/git/trees/${defaultBranch}`, {
+      params: { recursive: 1 }
+    });
+    treeData = treeRes.tree || [];
+  } catch (error) {
+    if (error.response && error.response.status === 409) {
+      return { name: repo, type: 'directory', size: 0, children: [] };
+    }
+    throw error;
+  }
+
+  // 3. Build tree structure
+  const root = { name: repoData.name, type: 'directory', size: 0, children: [] };
+
+  const insertPath = (pathParts, size, type) => {
+    let current = root;
+    current.size += size;
+
+    for (let i = 0; i < pathParts.length; i++) {
+      const part = pathParts[i];
+      const isLast = i === pathParts.length - 1;
+      
+      let child = current.children.find(c => c.name === part);
+      if (!child) {
+        child = {
+          name: part,
+          type: isLast && type === 'blob' ? 'file' : 'directory',
+          size: 0,
+          children: isLast && type === 'blob' ? undefined : []
+        };
+        current.children.push(child);
+      }
+      child.size += size;
+      current = child;
+    }
+  };
+
+  treeData.forEach(item => {
+    if (item.path.startsWith('.git/')) return;
+    const parts = item.path.split('/');
+    const size = item.size || 0;
+    insertPath(parts, size, item.type);
+  });
+
+  const pruneTree = (node, currentDepth = 0, maxDepth = 3) => {
+    if (!node.children) return;
+
+    if (currentDepth >= maxDepth) {
+      node.children = undefined;
+      return;
+    }
+
+    node.children.sort((a, b) => b.size - a.size);
+
+    if (node.children.length > 12) {
+      const topChildren = node.children.slice(0, 10);
+      const others = node.children.slice(10);
+      const othersSize = others.reduce((sum, c) => sum + c.size, 0);
+
+      node.children = topChildren;
+      if (othersSize > 0) {
+        node.children.push({
+          name: '[others]',
+          type: 'directory',
+          size: othersSize,
+          children: []
+        });
+      }
+    }
+
+    node.children.forEach(child => pruneTree(child, currentDepth + 1, maxDepth));
+  };
+
+  pruneTree(root, 0, 3);
+
+  return root;
+};
+

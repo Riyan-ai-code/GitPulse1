@@ -73,3 +73,29 @@ export const deleteAnalysis = (req, res) => {
   const deleted = fileDb.deleteCacheEntries(owner, repo);
   return res.json({ success: true, deleted });
 };
+
+export const getComposition = async (req, res, next) => {
+  const { owner, repo } = req.query;
+
+  if (!owner || !repo) {
+    return res.status(400).json({
+      error: 'Bad Request',
+      message: 'Both "owner" and "repo" query parameters are required.'
+    });
+  }
+
+  const cacheKey = `composition:${owner.toLowerCase()}/${repo.toLowerCase()}`;
+  const cachedData = fileDb.getCache(cacheKey);
+  if (cachedData) {
+    return res.json(cachedData);
+  }
+
+  try {
+    const data = await repositoryService.getCodebaseComposition(owner, repo);
+    fileDb.setCache(cacheKey, data);
+    return res.json(data);
+  } catch (error) {
+    next(error);
+  }
+};
+

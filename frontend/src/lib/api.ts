@@ -67,6 +67,14 @@ export const deleteRepoAnalysis = async (owner: string, repo: string): Promise<a
   return handleResponse(response);
 };
 
+export const fetchCodebaseComposition = async (owner: string, repo: string): Promise<any> => {
+  const response = await fetch(`${API_BASE_URL}/repository/composition?owner=${encodeURIComponent(owner)}&repo=${encodeURIComponent(repo)}`, {
+    credentials: 'include'
+  });
+  return handleResponse(response);
+};
+
+
 // URL parser to extract owner and repo from various github URL formats or raw strings
 export const parseGitHubUrl = (input: string): { owner: string; repo: string } | null => {
   let cleanInput = input.trim();
