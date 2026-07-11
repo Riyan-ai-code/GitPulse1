@@ -5,6 +5,7 @@ import commitsRoutes from './modules/commits/commits.routes.js';
 import contributorsRoutes from './modules/contributors/contributors.routes.js';
 import analysisRoutes from './modules/analysis/analysis.routes.js';
 import authRoutes from './modules/auth/auth.routes.js';
+import gsocRoutes from './modules/gsoc/gsoc.routes.js';
 import errorHandler from './shared/middleware/errorHandler.js';
 
 const app = express();
@@ -58,6 +59,7 @@ app.use('/api/repository', repositoryRoutes);
 app.use('/api/commits', commitsRoutes);
 app.use('/api/contributors', contributorsRoutes);
 app.use('/api/analysis', analysisRoutes);
+app.use('/api/gsoc', gsocRoutes);
 
 // Global Error Handler
 app.use(errorHandler);

@@ -99,3 +99,32 @@ export interface RepositoryAnalysis {
   insights: any[];
   aiActive?: boolean;
 }
+
+export interface GSoCProject {
+  title: string;
+  short_description: string;
+  description: string;
+  student_name: string;
+  code_url: string;
+  project_url: string;
+}
+
+export interface GSoCYearInfo {
+  projects_url: string;
+  num_projects: number;
+  projects?: GSoCProject[];
+}
+
+export interface GSoCOrganization {
+  name: string;
+  url: string;
+  image_url: string;
+  image_background_color: string;
+  description: string;
+  category: string;
+  topics: string[];
+  technologies: string[];
+  years: {
+    [year: string]: GSoCYearInfo;
+  };
+}

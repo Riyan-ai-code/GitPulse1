@@ -28,7 +28,8 @@ import {
   History,
   Trash2,
   Layers,
-  Printer
+  Printer,
+  GraduationCap
 } from 'lucide-react';
 import {
   fetchRepositoryOverview,
@@ -59,6 +60,7 @@ import InsightsPanel from '../components/InsightsPanel';
 import CodebaseComposition from '../components/CodebaseComposition';
 import PrsIssuesPanel from '../components/PrsIssuesPanel';
 import ScoreboardPanel from '../components/ScoreboardPanel';
+import GSoCPanel from '../components/GSoCPanel';
 import Skeleton from '../components/Skeleton';
 
 const GithubIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -93,7 +95,7 @@ const GithubIconLarge = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-type TabType = 'composition' | 'overview' | 'commits' | 'contributors' | 'quality' | 'insights' | 'compare' | 'prs-issues' | 'recent-audits' | 'about' | 'scoreboard';
+type TabType = 'composition' | 'overview' | 'commits' | 'contributors' | 'quality' | 'insights' | 'compare' | 'prs-issues' | 'recent-audits' | 'about' | 'scoreboard' | 'gsoc';
 
 const formatSizeForPrint = (kb: number) => {
   if (kb < 1024) return `${kb} KB`;
@@ -755,6 +757,18 @@ export default function LandingPage() {
                 <History className="w-[18px] h-[18px]" />
                 Recent Audits
               </button>
+
+              <button
+                onClick={() => navigateToTab('gsoc')}
+                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-[14px] font-semibold transition-colors cursor-pointer ${
+                  activeTab === 'gsoc'
+                    ? 'bg-brand-primary-light text-brand-primary dark:bg-brand-primary/10'
+                    : 'text-text-secondary hover:bg-bg-secondary hover:text-text-heading'
+                }`}
+              >
+                <GraduationCap className="w-[18px] h-[18px]" />
+                GSoC Portal
+              </button>
             </div>
           </nav>
         </div>
@@ -1234,6 +1248,12 @@ export default function LandingPage() {
                       ))}
                     </div>
                   )}
+                </div>
+              )}
+
+              {activeTab === 'gsoc' && (
+                <div className="w-full animate-fadeIn">
+                  <GSoCPanel />
                 </div>
               )}
   
