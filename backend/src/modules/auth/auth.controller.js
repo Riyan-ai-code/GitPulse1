@@ -49,10 +49,12 @@ export const githubCallback = async (req, res) => {
       return res.redirect(`http://localhost:3000?auth_error=${encodeURIComponent(error)}`);
     }
 
+    const isSecure = req.secure || req.headers['x-forwarded-proto'] === 'https';
+
     // Set access token cookie (15 minutes)
     res.cookie('github_access_token', access_token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isSecure,
       sameSite: 'lax',
       maxAge: 15 * 60 * 1000 // 15 minutes
     });
@@ -60,7 +62,7 @@ export const githubCallback = async (req, res) => {
     // Set refresh token cookie (24 hours)
     res.cookie('github_refresh_token', access_token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isSecure,
       sameSite: 'lax',
       maxAge: 24 * 60 * 60 * 1000 // 24 hours
     });
@@ -87,7 +89,7 @@ export const getAuthenticatedUser = async (req, res) => {
     token = cookies.github_refresh_token;
     res.cookie('github_access_token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: req.secure || req.headers['x-forwarded-proto'] === 'https',
       sameSite: 'lax',
       maxAge: 15 * 60 * 1000 // 15 minutes
     });
