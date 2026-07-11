@@ -574,11 +574,11 @@ export default function LandingPage() {
 
   // 2. Render SPA Dashboard (When a repo is analyzed)
   return (
-    <div className="flex-1 flex min-h-screen bg-bg-main">
+    <div className="flex-1 flex h-screen bg-bg-main">
       
       {/* Left Sidebar Menu */}
-      <aside className="w-64 border-r border-border-card bg-bg-sidebar hidden md:flex flex-col justify-between py-6 flex-shrink-0">
-        <div className="space-y-6">
+      <aside className="w-64 h-screen sticky top-0 border-r border-border-card bg-bg-sidebar hidden md:flex flex-col py-6 flex-shrink-0 overflow-hidden">
+        <div className="flex-1 space-y-6">
           {/* Logo / Title */}
           <div className="px-6 flex items-center gap-2">
             <div className="p-1.5 rounded bg-brand-primary-light dark:bg-brand-primary-light/10 text-brand-primary">
@@ -703,10 +703,6 @@ export default function LandingPage() {
 
         {/* Bottom Menu */}
         <div className="px-3 space-y-1">
-          <span className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-[13px] font-semibold text-text-secondary hover:bg-bg-secondary hover:text-text-heading cursor-pointer">
-            <Settings className="w-4 h-4" />
-            Settings
-          </span>
           <span
             onClick={() => navigateToTab('about')}
             className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg text-[13px] font-semibold cursor-pointer ${
@@ -754,7 +750,7 @@ export default function LandingPage() {
       </aside>
 
       {/* Main Dashboard Window */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0">
         
         {/* Topbar inside Dashboard */}
         <header className="h-14 border-b border-border-card bg-bg-card px-6 flex items-center justify-between">
@@ -854,7 +850,7 @@ export default function LandingPage() {
         </header>
 
         {/* Content Body */}
-        <div className="flex-1 p-6 overflow-y-auto space-y-6">
+        <div className="flex-1 min-h-0 p-4 overflow-y-auto space-y-4">
           {error ? (
             <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-8 shadow-soft flex flex-col items-center justify-center text-center max-w-xl mx-auto space-y-4">
               <div className="p-3 rounded-full bg-red-50 text-brand-red">
@@ -1161,7 +1157,7 @@ export default function LandingPage() {
               )}
 
               {activeTab === 'contributors' && (
-                <div className="max-w-2xl mx-auto animate-fadeIn">
+                <div className="max-w-5xl w-full mx-auto animate-fadeIn">
                   {loadingContributors ? (
                     <Skeleton className="h-[400px]" />
                   ) : contributors ? (

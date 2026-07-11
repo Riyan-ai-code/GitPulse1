@@ -93,18 +93,19 @@ body {
 
 /* Custom Scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: rgba(128, 128, 128, 0.1);
+  border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--border-divider);
-  border-radius: 3px;
+  background: rgba(128, 128, 128, 0.4);
+  border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted);
+  background: rgba(128, 128, 128, 0.6);
 }
 
 /* Print Styles for PDF Exporter */
