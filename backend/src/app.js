@@ -32,7 +32,7 @@ app.use((req, res, next) => {
     token = cookies.github_refresh_token;
     res.cookie('github_access_token', token, {
       httpOnly: true,
-      secure: false,
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 15 * 60 * 1000 // 15 minutes
     });
