@@ -24,22 +24,17 @@ export const CommitAnalysis: React.FC<Props> = ({ data }) => {
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
-  // Group commits by Day of the Week based on recent commits history (last 7 days)
+  // Group commits by Day of the Week based on recent commits history
   const getDayOfWeekData = () => {
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const counts = { Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0, Sat: 0, Sun: 0 };
     
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    
     data.recentCommits.forEach(c => {
       if (c.date) {
         const d = new Date(c.date);
-        if (d >= sevenDaysAgo) {
-          const dayName = days[d.getDay()] as keyof typeof counts;
-          if (counts[dayName] !== undefined) {
-            counts[dayName]++;
-          }
+        const dayName = days[d.getDay()] as keyof typeof counts;
+        if (counts[dayName] !== undefined) {
+          counts[dayName]++;
         }
       }
     });
@@ -50,7 +45,7 @@ export const CommitAnalysis: React.FC<Props> = ({ data }) => {
       { name: 'Wed', commits: counts.Wed },
       { name: 'Thu', commits: counts.Thu },
       { name: 'Fri', commits: counts.Fri },
-      { name: 'Sat', commits: counts.Sat },
+      { name: 'Sat', counts: counts.Sat, commits: counts.Sat }, // supporting both keys just in case
       { name: 'Sun', commits: counts.Sun },
     ];
   };
@@ -114,10 +109,10 @@ export const CommitAnalysis: React.FC<Props> = ({ data }) => {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="text-[16px] font-semibold text-text-heading">Commit Activity</h3>
-              <p className="text-[12px] text-text-secondary">Commit volume history over the last 30 days</p>
+              <p className="text-[12px] text-text-secondary">Commit volume history of the last 30 active days</p>
             </div>
             <div className="text-[11px] font-bold px-2 py-1 bg-slate-100 dark:bg-bg-secondary rounded text-text-secondary">
-              Last 30 days
+              Active Timeline
             </div>
           </div>
 
@@ -176,7 +171,7 @@ export const CommitAnalysis: React.FC<Props> = ({ data }) => {
               <p className="text-[12px] text-text-secondary">Day-wise distribution of recent commit activity</p>
             </div>
             <div className="text-[11px] font-bold px-2 py-1 bg-slate-100 dark:bg-bg-secondary rounded text-text-secondary">
-              Last 7 days
+              Recent History
             </div>
           </div>
 

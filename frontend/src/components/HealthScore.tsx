@@ -18,18 +18,60 @@ interface Props {
 }
 
 export const HealthScore: React.FC<Props> = ({ data, commits = [] }) => {
-  const score = data.healthScore;
+  const totalCommitsCount = commits.length;
+
+  // Get Commit Quality Score from backend or fallback to local calculation
+  let score = 78;
+  let conventionalPercent = 72;
+  let goodLengthPercent = 82;
+  let imperativePercent = 80;
+  let activityPercent = 75;
+  let recencyPercent = 80;
+
+  if (data.commitQuality) {
+    score = data.commitQuality.score;
+    conventionalPercent = data.commitQuality.conventionalPercent;
+    goodLengthPercent = data.commitQuality.goodLengthPercent;
+    imperativePercent = data.commitQuality.imperativePercent;
+    activityPercent = data.commitQuality.activityPercent;
+    recencyPercent = data.commitQuality.recencyPercent;
+  } else {
+    // Fallback to local calculation
+    if (totalCommitsCount > 0) {
+      const conventionalCount = commits.filter((c) =>
+        /^(feat|fix|chore|docs|style|refactor|perf|test|build|ci)(\([a-z0-9_-]+\))?:/i.test(c.message.trim())
+      ).length;
+      conventionalPercent = Math.round((conventionalCount / totalCommitsCount) * 100);
+
+      const goodLengthCount = commits.filter(
+        (c) => c.message.length >= 8 && c.message.length <= 74
+      ).length;
+      goodLengthPercent = Math.round((goodLengthCount / totalCommitsCount) * 100);
+
+      const imperativeCount = commits.filter((c) =>
+        /^(feat|fix|chore|docs|style|refactor|perf|test|build|ci)?(\([a-z0-9_-]+\))?:?\s*(add|fix|handle|update|remove|delete|change|implement|make|refactor|set|get|create|run|setup|test|build|ci|docs|improve|cleanup)/i.test(c.message.trim())
+      ).length;
+      imperativePercent = Math.round((imperativeCount / totalCommitsCount) * 100);
+    }
+
+    const activityItem = data.healthBreakdown?.find(item => item.metric === 'Recent Activity (30 Days)');
+    const recencyItem = data.healthBreakdown?.find(item => item.metric === 'Commit Recency');
+    
+    activityPercent = activityItem ? Math.round((activityItem.score / activityItem.maxScore) * 100) : 0;
+    recencyPercent = recencyItem ? Math.round((recencyItem.score / recencyItem.maxScore) * 100) : 0;
+    score = Math.round((conventionalPercent + goodLengthPercent + imperativePercent + activityPercent + recencyPercent) / 5);
+  }
 
   // Determine colors based on thresholds
   let ringColor = 'stroke-brand-emerald';
   let badgeColorClass = 'text-brand-emerald';
   let badgeText = 'Good';
 
-  if (score >= 90) {
+  if (score >= 80) {
     ringColor = 'stroke-brand-emerald';
     badgeColorClass = 'text-brand-emerald';
     badgeText = 'Excellent';
-  } else if (score >= 70) {
+  } else if (score >= 50) {
     ringColor = 'stroke-brand-amber';
     badgeColorClass = 'text-brand-amber';
     badgeText = 'Good';
@@ -44,33 +86,6 @@ export const HealthScore: React.FC<Props> = ({ data, commits = [] }) => {
   const strokeWidth = 5;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (score / 100) * circumference;
-
-  // Calculate dynamic commit metrics from recent commits list
-  const totalCommitsCount = commits.length;
-  
-  let conventionalPercent = 72; // fallback from screenshot
-  let goodLengthPercent = 82;   // fallback
-  let imperativePercent = 80;   // fallback
-
-  if (totalCommitsCount > 0) {
-    // 1. Conventional format check (starts with feat:, fix:, chore:, etc.)
-    const conventionalCount = commits.filter((c) =>
-      /^(feat|fix|chore|docs|style|refactor|perf|test|build|ci)(\([a-z0-9_-]+\))?:/i.test(c.message.trim())
-    ).length;
-    conventionalPercent = Math.round((conventionalCount / totalCommitsCount) * 100);
-
-    // 2. Length check (10 to 72 characters is ideal)
-    const goodLengthCount = commits.filter(
-      (c) => c.message.length >= 8 && c.message.length <= 74
-    ).length;
-    goodLengthPercent = Math.round((goodLengthCount / totalCommitsCount) * 100);
-
-    // 3. Imperative mood (starts with imperative verbs like Add, Fix, Update, Refactor)
-    const imperativeCount = commits.filter((c) =>
-      /^(feat|fix|chore|docs|style|refactor|perf|test|build|ci)?(\([a-z0-9_-]+\))?:?\s*(add|fix|handle|update|remove|delete|change|implement|make|refactor|set|get|create|run|setup|test|build|ci|docs|improve|cleanup)/i.test(c.message.trim())
-    ).length;
-    imperativePercent = Math.round((imperativeCount / totalCommitsCount) * 100);
-  }
 
   // Audit commits logic
   const getLintedCommits = () => {
@@ -108,15 +123,16 @@ export const HealthScore: React.FC<Props> = ({ data, commits = [] }) => {
   const lintedCommits = getLintedCommits();
   const totalWarningsCount = lintedCommits.reduce((acc, curr) => acc + curr.warnings.length, 0);
 
-  // Verdict content based on score
+  // Verdict content based on global health score
   const getVerdictInfo = () => {
-    if (score >= 80) {
+    const globalScore = data.healthScore;
+    if (globalScore >= 80) {
       return {
         text: 'This repository looks professional and resume worthy! ✅',
         cardBg: 'bg-emerald-50/50 dark:bg-emerald-950/10 border-emerald-100 dark:border-emerald-900/20',
         textClass: 'text-brand-emerald'
       };
-    } else if (score >= 60) {
+    } else if (globalScore >= 60) {
       return {
         text: 'This repository is healthy but could benefit from minor hygiene updates. 👍',
         cardBg: 'bg-amber-50/50 dark:bg-amber-950/10 border-amber-100 dark:border-amber-900/20',

@@ -12,14 +12,14 @@ export const getContributors = async (req, res, next) => {
   }
 
   const cacheKey = `contributors:${owner.toLowerCase()}/${repo.toLowerCase()}`;
-  const cachedData = fileDb.getCache(cacheKey);
+  const cachedData = await fileDb.getCache(cacheKey);
   if (cachedData) {
     return res.json(cachedData);
   }
 
   try {
     const data = await contributorsService.getContributorsList(owner, repo);
-    fileDb.setCache(cacheKey, data);
+    await fileDb.setCache(cacheKey, data);
     return res.json(data);
   } catch (error) {
     next(error);

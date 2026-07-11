@@ -83,8 +83,19 @@ export interface Insight {
   type: 'success' | 'warning' | 'info';
 }
 
+export interface CommitQualityDetails {
+  score: number;
+  conventionalPercent: number;
+  goodLengthPercent: number;
+  imperativePercent: number;
+  activityPercent: number;
+  recencyPercent: number;
+}
+
 export interface RepositoryAnalysis {
   healthScore: number;
   healthBreakdown: HealthBreakdownItem[];
-  insights: Insight[];
+  commitQuality?: CommitQualityDetails;
+  insights: any[];
+  aiActive?: boolean;
 }

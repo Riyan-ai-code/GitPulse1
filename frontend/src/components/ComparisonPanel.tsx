@@ -1,17 +1,45 @@
 import React, { useState } from 'react';
-import { Search, AlertCircle, ArrowRight, RefreshCw, Flame, Star, GitFork, Clock, ShieldAlert } from 'lucide-react';
+import { 
+  Search, 
+  AlertCircle, 
+  ArrowRight, 
+  RefreshCw, 
+  Flame, 
+  Star, 
+  GitFork, 
+  Clock, 
+  ShieldAlert,
+  Printer,
+  Users,
+  Activity,
+  Layers,
+  FileText,
+  Trophy,
+  Compass
+} from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 import {
   fetchRepositoryOverview,
   fetchCommitStats,
   fetchAnalysis,
+  fetchPrsAndIssues,
   parseGitHubUrl
 } from '../lib/api';
 import { RepositoryOverview, CommitStats, RepositoryAnalysis } from '../types';
 
 interface ComparisonData {
-  repo1: { overview: RepositoryOverview; commits: CommitStats; analysis: RepositoryAnalysis };
-  repo2: { overview: RepositoryOverview; commits: CommitStats; analysis: RepositoryAnalysis };
+  repo1: { 
+    overview: RepositoryOverview; 
+    commits: CommitStats; 
+    analysis: RepositoryAnalysis;
+    prsIssues: any;
+  };
+  repo2: { 
+    overview: RepositoryOverview; 
+    commits: CommitStats; 
+    analysis: RepositoryAnalysis;
+    prsIssues: any;
+  };
 }
 
 export const ComparisonPanel: React.FC = () => {
@@ -42,18 +70,23 @@ export const ComparisonPanel: React.FC = () => {
     setLoading(true);
 
     try {
-      const [r1Overview, r1Commits, r1Analysis, r2Overview, r2Commits, r2Analysis] = await Promise.all([
+      const [
+        r1Overview, r1Commits, r1Analysis, r1PrsIssues,
+        r2Overview, r2Commits, r2Analysis, r2PrsIssues
+      ] = await Promise.all([
         fetchRepositoryOverview(p1.owner, p1.repo),
         fetchCommitStats(p1.owner, p1.repo),
         fetchAnalysis(p1.owner, p1.repo),
+        fetchPrsAndIssues(p1.owner, p1.repo),
         fetchRepositoryOverview(p2.owner, p2.repo),
         fetchCommitStats(p2.owner, p2.repo),
         fetchAnalysis(p2.owner, p2.repo),
+        fetchPrsAndIssues(p2.owner, p2.repo),
       ]);
 
       setData({
-        repo1: { overview: r1Overview, commits: r1Commits, analysis: r1Analysis },
-        repo2: { overview: r2Overview, commits: r2Commits, analysis: r2Analysis },
+        repo1: { overview: r1Overview, commits: r1Commits, analysis: r1Analysis, prsIssues: r1PrsIssues },
+        repo2: { overview: r2Overview, commits: r2Commits, analysis: r2Analysis, prsIssues: r2PrsIssues },
       });
     } catch (err: any) {
       console.error(err);
@@ -68,6 +101,16 @@ export const ComparisonPanel: React.FC = () => {
     setRepo1Input('');
     setRepo2Input('');
     setError(null);
+  };
+
+  // Format date to "25 Oct 2016" style
+  const formatDateString = (dateStr: string | null) => {
+    if (!dateStr) return 'N/A';
+    const d = new Date(dateStr);
+    const day = d.getDate();
+    const month = d.toLocaleDateString('en-US', { month: 'short' });
+    const year = d.getFullYear();
+    return `${day} ${month} ${year}`;
   };
 
   // Compile combined 30-day activity data for the Recharts line chart
@@ -90,6 +133,95 @@ export const ComparisonPanel: React.FC = () => {
   };
 
   const combinedGraphData = getCombinedGraphData();
+
+  // Dynamic GSoC Contribution Readiness Calculation
+  const getGSoCScore = (repo: any) => {
+    let score = 0;
+    const overview = repo.overview;
+
+    if (overview.license && overview.license !== 'No License') score += 20;
+    if (overview.stars > 1000) score += 20;
+    else if (overview.stars > 100) score += 15;
+    else if (overview.stars > 10) score += 10;
+    
+    if (overview.forks > 500) score += 25;
+    else if (overview.forks > 100) score += 20;
+    else if (overview.forks > 10) score += 15;
+    else if (overview.forks > 2) score += 10;
+
+    if (overview.openIssuesCount > 50) score += 20;
+    else if (overview.openIssuesCount > 10) score += 15;
+    else if (overview.openIssuesCount > 0) score += 10;
+
+    const lastUpdate = new Date(overview.updatedAt);
+    const diffDays = Math.floor((new Date().getTime() - lastUpdate.getTime()) / (1000 * 60 * 60 * 24));
+    if (diffDays <= 7) score += 15;
+    else if (diffDays <= 30) score += 10;
+    else if (diffDays <= 90) score += 5;
+
+    let grade = 'B';
+    if (score >= 85) grade = 'A+';
+    else if (score >= 70) grade = 'A';
+    else if (score >= 40) grade = 'B';
+    else grade = 'C';
+
+    return { score, grade };
+  };
+
+  // Compile comparison scorecard metrics
+  const getScorecard = () => {
+    if (!data) return null;
+
+    const gsoc1 = getGSoCScore(data.repo1);
+    const gsoc2 = getGSoCScore(data.repo2);
+
+    const repo1Contributors = data.repo1.commits.recentCommits?.reduce((acc: string[], c) => c.author?.login && !acc.includes(c.author.login) ? [...acc, c.author.login] : acc, []).length || 0;
+    const repo2Contributors = data.repo2.commits.recentCommits?.reduce((acc: string[], c) => c.author?.login && !acc.includes(c.author.login) ? [...acc, c.author.login] : acc, []).length || 0;
+
+    const metrics = [
+      { key: 'health', label: 'Health Score', v1: data.repo1.analysis.healthScore, v2: data.repo2.analysis.healthScore, comp: (a: number, b: number) => a - b },
+      { key: 'stars', label: 'GitHub Stars', v1: data.repo1.overview.stars, v2: data.repo2.overview.stars, comp: (a: number, b: number) => a - b },
+      { key: 'forks', label: 'Forks', v1: data.repo1.overview.forks, v2: data.repo2.overview.forks, comp: (a: number, b: number) => a - b },
+      { key: 'watchers', label: 'Watchers', v1: data.repo1.overview.watchers, v2: data.repo2.overview.watchers, comp: (a: number, b: number) => a - b },
+      { key: 'size', label: 'Codebase Size', v1: data.repo1.overview.size, v2: data.repo2.overview.size, comp: (a: number, b: number) => b - a }, // lower size wins
+      { key: 'totalCommits', label: 'Total Commits', v1: data.repo1.commits.totalCommits, v2: data.repo2.commits.totalCommits, comp: (a: number, b: number) => a - b },
+      { key: 'commits30d', label: 'Commits (30 Days)', v1: data.repo1.commits.commitsLast30Days, v2: data.repo2.commits.commitsLast30Days, comp: (a: number, b: number) => a - b },
+      { key: 'contributors', label: 'Active Contributors', v1: repo1Contributors, v2: repo2Contributors, comp: (a: number, b: number) => a - b },
+      { 
+        key: 'lastCommit', 
+        label: 'Last Commit Date', 
+        v1: data.repo1.commits.lastCommitDate, 
+        v2: data.repo2.commits.lastCommitDate, 
+        comp: (a: string | null, b: string | null) => {
+          if (!a && !b) return 0;
+          if (!a) return -1;
+          if (!b) return 1;
+          return new Date(a).getTime() - new Date(b).getTime();
+        } 
+      },
+      { key: 'prs', label: 'Open PRs', v1: data.repo1.prsIssues?.prs?.open ?? 0, v2: data.repo2.prsIssues?.prs?.open ?? 0, comp: (a: number, b: number) => a - b },
+      { key: 'prVelocity', label: 'PR Merge Time', v1: data.repo1.prsIssues?.prs?.avgMergeTimeHours ?? 9999, v2: data.repo2.prsIssues?.prs?.avgMergeTimeHours ?? 9999, comp: (a: number, b: number) => b - a }, // lower time wins
+      { key: 'staleIssues', label: 'Stale Open Issues', v1: data.repo1.prsIssues?.issues?.staleCount ?? 9999, v2: data.repo2.prsIssues?.issues?.staleCount ?? 9999, comp: (a: number, b: number) => b - a }, // lower stale count wins
+      { key: 'gsoc', label: 'GSoC Contributor Grade', v1: gsoc1.score, v2: gsoc2.score, comp: (a: number, b: number) => a - b, meta1: gsoc1.grade, meta2: gsoc2.grade }
+    ];
+
+    let wins1 = 0;
+    let wins2 = 0;
+
+    metrics.forEach(m => {
+      const c = m.comp(m.v1, m.v2);
+      if (c > 0) wins1++;
+      if (c < 0) wins2++;
+    });
+
+    const winnerRepo = wins1 > wins2 ? data.repo1 : wins2 > wins1 ? data.repo2 : null;
+    const winnerName = winnerRepo ? winnerRepo.overview.name : 'Tie';
+    const winsCount = Math.max(wins1, wins2);
+    
+    return { metrics, wins1, wins2, winnerName, winsCount, winnerRepo, gsoc1, gsoc2 };
+  };
+
+  const scorecard = getScorecard();
 
   // Score styling helpers
   const getScoreColor = (score: number) => {
@@ -182,13 +314,67 @@ export const ComparisonPanel: React.FC = () => {
               <h3 className="text-[16px] font-bold text-text-heading">Codebase Comparison</h3>
               <p className="text-[12px] text-text-secondary mt-0.5">Comparing {data.repo1.overview.owner.login}/{data.repo1.overview.name} vs. {data.repo2.overview.owner.login}/{data.repo2.overview.name}</p>
             </div>
-            <button
-              onClick={handleReset}
-              className="px-4 py-2 border border-border-divider hover:bg-bg-secondary text-[12.5px] font-bold text-text-secondary rounded-lg transition-colors cursor-pointer"
-            >
-              Reset Comparison
-            </button>
+            
+            <div className="flex items-center gap-2.5 ml-auto">
+              <button
+                onClick={handleReset}
+                className="px-3 py-1.5 border border-border-card hover:bg-bg-secondary text-[12px] font-bold text-text-secondary rounded-lg transition-colors cursor-pointer"
+              >
+                Reset Comparison
+              </button>
+            </div>
           </div>
+
+          {/* Print only header */}
+          <div className="hidden print:block border-b border-slate-300 pb-3 mb-6">
+            <h1 className="text-[20px] font-black text-slate-900">GitPulse Comparison Report</h1>
+            <p className="text-[12px] text-slate-500 mt-1">
+              Comparing <strong>{data.repo1.overview.owner.login}/{data.repo1.overview.name}</strong> vs. <strong>{data.repo2.overview.owner.login}/{data.repo2.overview.name}</strong>
+            </p>
+            <p className="text-[10px] text-slate-400 mt-0.5">Generated on: {new Date().toLocaleDateString()}</p>
+          </div>
+
+          {/* Comparison Summary Card */}
+          {scorecard && (
+            <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-6 shadow-soft hover:shadow-hover-card transition-shadow duration-200 space-y-4 no-print">
+              <div className="flex items-center gap-2 border-b border-border-divider pb-3">
+                <Compass className="w-5 h-5 text-brand-primary" />
+                <h4 className="text-[14px] font-bold text-text-heading">Codebase Comparison Verdict</h4>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+                <div className="md:col-span-2 space-y-2 text-left">
+                  {scorecard.winnerRepo ? (
+                    <p className="text-[13.5px] text-text-primary leading-relaxed">
+                      🏆 <strong>{scorecard.winnerRepo.overview.name}</strong> is the recommended codebase. It won <strong>{scorecard.winsCount} out of {scorecard.metrics.length}</strong> comparison metrics, displaying superior community engagement, faster contribution review times, and healthier documentation hygiene.
+                    </p>
+                  ) : (
+                    <p className="text-[13.5px] text-text-primary leading-relaxed">
+                      🤝 <strong>It is a tie!</strong> Both codebases are exceptionally well-matched across health scores, star ratios, and developer velocity metrics.
+                    </p>
+                  )}
+                  <p className="text-[12.5px] text-text-secondary leading-relaxed">
+                    For developers aiming to contribute to GSoC or open source, {scorecard.winnerRepo ? scorecard.winnerRepo.overview.name : 'both repositories'} offer active collaboration lines. Compare the side-by-side metric weights below to choose the project that best fits your language stack.
+                  </p>
+                </div>
+
+                <div className="bg-slate-50 dark:bg-bg-secondary/40 border border-border-card/65 rounded-xl p-4 space-y-3 text-[12.5px] flex flex-col items-center text-center justify-center">
+                  <span className="text-[12px] font-bold text-text-heading uppercase tracking-wider block">GSoC Readiness</span>
+                  <div className="flex items-center gap-6 mt-1">
+                    <div className="space-y-1">
+                      <span className="text-[11px] font-bold text-text-secondary block truncate max-w-[80px]">{data.repo1.overview.name}</span>
+                      <span className="text-[20px] font-black text-brand-primary block">{scorecard.gsoc1.grade}</span>
+                    </div>
+                    <div className="h-8 w-px bg-border-divider" />
+                    <div className="space-y-1">
+                      <span className="text-[11px] font-bold text-text-secondary block truncate max-w-[80px]">{data.repo2.overview.name}</span>
+                      <span className="text-[20px] font-black text-[#8B5CF6] block">{scorecard.gsoc2.grade}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Side-by-Side Comparison Table Card */}
           <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-6 shadow-soft">
@@ -204,72 +390,88 @@ export const ComparisonPanel: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border-divider text-[13px] font-semibold text-text-primary">
-                  {/* Health Score */}
-                  <tr className="hover:bg-bg-hover/30">
-                    <td className="py-3 px-4 text-left font-bold">Health Score</td>
-                    <td className="py-3 px-4">
-                      <span className={`px-2.5 py-1 rounded-full font-extrabold ${getScoreColor(data.repo1.analysis.healthScore)}`}>
-                        {data.repo1.analysis.healthScore} / 100
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className={`px-2.5 py-1 rounded-full font-extrabold ${getScoreColor(data.repo2.analysis.healthScore)}`}>
-                        {data.repo2.analysis.healthScore} / 100
-                      </span>
-                    </td>
-                  </tr>
+                  {scorecard && scorecard.metrics.map(metric => {
+                    const compResult = metric.comp(metric.v1, metric.v2);
+                    const win1 = compResult > 0;
+                    const win2 = compResult < 0;
 
-                  {/* Stars */}
-                  <tr className="hover:bg-bg-hover/30">
-                    <td className="py-3 px-4 text-left">GitHub Stars</td>
-                    <td className="py-3 px-4">{data.repo1.overview.stars.toLocaleString()}</td>
-                    <td className="py-3 px-4">{data.repo2.overview.stars.toLocaleString()}</td>
-                  </tr>
+                    const formatVal = (v: any, key: string, isRepo2 = false) => {
+                      if (key === 'health') {
+                        return (
+                          <span className={`px-2.5 py-1 rounded-full font-extrabold ${getScoreColor(v)}`}>
+                            {v} / 100
+                          </span>
+                        );
+                      }
+                      if (key === 'size') {
+                        return `${(v / 1024).toFixed(1)} MB`;
+                      }
+                      if (key === 'lastCommit') {
+                        return formatDateString(v);
+                      }
+                      if (key === 'prVelocity') {
+                        return v === 9999 ? 'N/A' : `${v} hrs`;
+                      }
+                      if (key === 'staleIssues') {
+                        return v === 9999 ? 'N/A' : v.toLocaleString();
+                      }
+                      if (key === 'gsoc') {
+                        const grade = isRepo2 ? metric.meta2 : metric.meta1;
+                        return (
+                          <span className="font-extrabold text-brand-primary">
+                            {grade} ({v} pts)
+                          </span>
+                        );
+                      }
+                      return v.toLocaleString();
+                    };
 
-                  {/* Forks */}
-                  <tr className="hover:bg-bg-hover/30">
-                    <td className="py-3 px-4 text-left">Forks</td>
-                    <td className="py-3 px-4">{data.repo1.overview.forks.toLocaleString()}</td>
-                    <td className="py-3 px-4">{data.repo2.overview.forks.toLocaleString()}</td>
-                  </tr>
-
-                  {/* Watchers */}
-                  <tr className="hover:bg-bg-hover/30">
-                    <td className="py-3 px-4 text-left">Watchers</td>
-                    <td className="py-3 px-4">{data.repo1.overview.watchers.toLocaleString()}</td>
-                    <td className="py-3 px-4">{data.repo2.overview.watchers.toLocaleString()}</td>
-                  </tr>
-
-                  {/* Codebase Size */}
-                  <tr className="hover:bg-bg-hover/30">
-                    <td className="py-3 px-4 text-left">Codebase Size</td>
-                    <td className="py-3 px-4">{(data.repo1.overview.size / 1024).toFixed(1)} MB</td>
-                    <td className="py-3 px-4">{(data.repo2.overview.size / 1024).toFixed(1)} MB</td>
-                  </tr>
-
-                  {/* Total Commits */}
-                  <tr className="hover:bg-bg-hover/30">
-                    <td className="py-3 px-4 text-left">Total Commits</td>
-                    <td className="py-3 px-4">{data.repo1.commits.totalCommits.toLocaleString()}</td>
-                    <td className="py-3 px-4">{data.repo2.commits.totalCommits.toLocaleString()}</td>
-                  </tr>
-
-                  {/* Commits (Last 30 Days) */}
-                  <tr className="hover:bg-bg-hover/30">
-                    <td className="py-3 px-4 text-left">Commits (Last 30 Days)</td>
-                    <td className="py-3 px-4 text-brand-primary">{data.repo1.commits.commitsLast30Days.toLocaleString()}</td>
-                    <td className="py-3 px-4 text-brand-primary">{data.repo2.commits.commitsLast30Days.toLocaleString()}</td>
-                  </tr>
+                    return (
+                      <tr key={metric.key} className="hover:bg-bg-hover/30 transition-colors">
+                        <td className="py-3 px-4 text-left font-semibold text-text-secondary">{metric.label}</td>
+                        <td className={`py-3 px-4 text-center font-bold ${
+                          win1 
+                            ? 'text-brand-emerald bg-emerald-50/30 dark:bg-emerald-950/10' 
+                            : ''
+                        }`}>
+                          <div className="flex items-center justify-center gap-2">
+                            {formatVal(metric.v1, metric.key, false)}
+                            {win1 && (
+                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-100 dark:bg-emerald-950 text-brand-emerald border border-emerald-200/50">
+                                <Trophy className="w-2.5 h-2.5" />
+                                Win
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className={`py-3 px-4 text-center font-bold ${
+                          win2 
+                            ? 'text-brand-emerald bg-emerald-50/30 dark:bg-emerald-950/10' 
+                            : ''
+                        }`}>
+                          <div className="flex items-center justify-center gap-2">
+                            {formatVal(metric.v2, metric.key, true)}
+                            {win2 && (
+                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-100 dark:bg-emerald-950 text-brand-emerald border border-emerald-200/50">
+                                <Trophy className="w-2.5 h-2.5" />
+                                Win
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
 
                   {/* Primary Language */}
                   <tr className="hover:bg-bg-hover/30">
-                    <td className="py-3 px-4 text-left">Primary Language</td>
-                    <td className="py-3 px-4">
+                    <td className="py-3 px-4 text-left font-semibold text-text-secondary">Primary Language</td>
+                    <td className="py-3 px-4 text-center">
                       <span className="px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/20 text-brand-primary text-[12px] font-bold">
                         {data.repo1.overview.primaryLanguage}
                       </span>
                     </td>
-                    <td className="py-3 px-4">
+                    <td className="py-3 px-4 text-center">
                       <span className="px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/20 text-brand-primary text-[12px] font-bold">
                         {data.repo2.overview.primaryLanguage}
                       </span>
@@ -278,9 +480,9 @@ export const ComparisonPanel: React.FC = () => {
 
                   {/* License */}
                   <tr className="hover:bg-bg-hover/30">
-                    <td className="py-3 px-4 text-left">License</td>
-                    <td className="py-3 px-4 text-text-secondary">{data.repo1.overview.license}</td>
-                    <td className="py-3 px-4 text-text-secondary">{data.repo2.overview.license}</td>
+                    <td className="py-3 px-4 text-left font-semibold text-text-secondary">License</td>
+                    <td className="py-3 px-4 text-center text-text-secondary">{data.repo1.overview.license}</td>
+                    <td className="py-3 px-4 text-center text-text-secondary">{data.repo2.overview.license}</td>
                   </tr>
                 </tbody>
               </table>
@@ -288,7 +490,7 @@ export const ComparisonPanel: React.FC = () => {
           </div>
 
           {/* Overlapping Commit Activity Chart */}
-          <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-6 shadow-soft">
+          <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-6 shadow-soft page-break-before">
             <div className="mb-4">
               <h4 className="text-[13px] font-bold text-text-secondary uppercase tracking-wider">Commit Velocity Comparison</h4>
               <p className="text-[12px] text-text-secondary mt-0.5">Overlapping daily commits volume history (last 30 days)</p>

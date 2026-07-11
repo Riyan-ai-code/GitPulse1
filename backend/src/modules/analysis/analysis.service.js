@@ -3,8 +3,10 @@ import * as repositoryService from '../repository/repository.service.js';
 import * as commitsService from '../commits/commits.service.js';
 import * as contributorsService from '../contributors/contributors.service.js';
 import { calculateHealthScore } from './rules/healthScore.js';
+import { calculateCommitQualityScore } from './rules/commitQuality.js';
 import { generateInsights } from './rules/insights.js';
 import { logAudit } from '../../shared/db/fileDb.js';
+import { getAISuggestions } from './ai.service.js';
 
 export const analyzeRepository = async (owner, repo, { skipHistory = false } = {}) => {
   // 1. Fetch data from other modules concurrently (internal orchestration)
@@ -46,8 +48,20 @@ export const analyzeRepository = async (owner, repo, { skipHistory = false } = {
     daysSinceLastCommit
   });
 
-  // 5. Generate Insights
-  const insights = generateInsights({
+  // 5. Generate Insights (Try Gemini LLM first, fallback to heuristics)
+  let aiInsights = null;
+  if (process.env.GEMINI_API_KEY) {
+    aiInsights = await getAISuggestions(owner, repo, {
+      overview,
+      commitStats,
+      contributorsList,
+      readmeExists,
+      daysSinceLastCommit,
+      healthScore: healthResults.score
+    });
+  }
+
+  const insights = aiInsights || generateInsights({
     overview,
     commitStats,
     contributorsList,
@@ -57,7 +71,7 @@ export const analyzeRepository = async (owner, repo, { skipHistory = false } = {
 
   // Log successful analysis into local database history (skip for examples & guests)
   if (!skipHistory) {
-    logAudit(
+    await logAudit(
       owner,
       repo,
       healthResults.score,
@@ -68,9 +82,20 @@ export const analyzeRepository = async (owner, repo, { skipHistory = false } = {
     );
   }
 
+  const commitFrequencyScore = healthResults.breakdown.find(item => item.metric === 'Recent Activity (30 Days)')?.score || 0;
+  const recencyScore = healthResults.breakdown.find(item => item.metric === 'Commit Recency')?.score || 0;
+
+  const commitQuality = calculateCommitQualityScore({
+    recentCommits: commitStats.recentCommits,
+    commitFrequencyScore,
+    recencyScore
+  });
+
   return {
     healthScore: healthResults.score,
     healthBreakdown: healthResults.breakdown,
-    insights
+    commitQuality,
+    insights,
+    aiActive: !!process.env.GEMINI_API_KEY
   };
 };

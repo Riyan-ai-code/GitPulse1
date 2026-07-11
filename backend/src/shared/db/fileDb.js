@@ -1,105 +1,210 @@
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import { createClient } from '@supabase/supabase-js';
+import dotenv from 'dotenv';
+dotenv.config();
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DB_PATH = path.resolve(__dirname, '../../../database.json');
+// Configured for Supabase Cloud Database storage
 
-// Initialize database file if it doesn't exist
-const initDb = () => {
-  if (!fs.existsSync(DB_PATH)) {
-    fs.writeFileSync(DB_PATH, JSON.stringify({ cache: [], history: [] }, null, 2), 'utf-8');
-  }
-};
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
 
-const readDb = () => {
+// Create Supabase client only if credentials are provided, fallback gracefully to log warnings
+const isSupabaseConfigured = supabaseUrl && supabaseUrl !== 'YOUR_SUPABASE_PROJECT_URL' && supabaseKey && supabaseKey !== 'YOUR_SUPABASE_ANON_KEY';
+
+if (!isSupabaseConfigured) {
+  console.warn('[Supabase] Warning: SUPABASE_URL and SUPABASE_KEY are not configured. Database features will be disabled or fallback.');
+}
+
+const supabase = isSupabaseConfigured ? createClient(supabaseUrl, supabaseKey) : null;
+
+/**
+ * 1. getCache(key)
+ * Retrieves a cached item and deletes it if expired.
+ */
+export const getCache = async (key) => {
   try {
-    initDb();
-    const data = fs.readFileSync(DB_PATH, 'utf-8');
-    return JSON.parse(data);
-  } catch (error) {
-    console.error('[fileDb] Error reading database.json, resetting:', error);
-    return { cache: [], history: [] };
-  }
-};
-
-const writeDb = (data) => {
-  try {
-    fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2), 'utf-8');
-  } catch (error) {
-    console.error('[fileDb] Error writing to database.json:', error);
-  }
-};
-
-export const getCache = (key) => {
-  const db = readDb();
-  const cached = db.cache.find(c => c.key === key);
-  if (!cached) return null;
-  
-  // Check if cache item has expired
-  if (Date.now() > cached.expiresAt) {
-    db.cache = db.cache.filter(c => c.key !== key);
-    writeDb(db);
+    if (!supabase) return null;
+    
+    const { data, error } = await supabase
+      .from('cache')
+      .select('data, expires_at')
+      .eq('key', key)
+      .single();
+      
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // No row found
+        return null;
+      }
+      console.error('[SupabaseCache] getCache error:', error);
+      return null;
+    }
+    
+    // Check if expired
+    const isExpired = new Date() > new Date(data.expires_at);
+    if (isExpired) {
+      // Async delete so we don't block the retrieve flow
+      supabase.from('cache').delete().eq('key', key).then();
+      return null;
+    }
+    
+    return data.data;
+  } catch (err) {
+    console.error('[SupabaseCache] Exception in getCache:', err);
     return null;
   }
-  return cached.data;
 };
 
-export const setCache = (key, data, durationMs = 3600000) => {
-  const db = readDb();
-  // Filter out existing key and expired items to keep DB compact
-  db.cache = db.cache.filter(c => c.key !== key && Date.now() < c.expiresAt);
-  db.cache.push({
-    key,
-    data,
-    expiresAt: Date.now() + durationMs
-  });
-  writeDb(db);
+/**
+ * 2. setCache(key, data, durationMs)
+ * Upserts cache items. Cleans up expired caches asynchronously.
+ */
+export const setCache = async (key, data, durationMs = 3600000) => {
+  try {
+    if (!supabase) return;
+    
+    const expiresAt = new Date(Date.now() + durationMs).toISOString();
+    
+    // Upsert key
+    const { error } = await supabase
+      .from('cache')
+      .upsert({
+        key,
+        data,
+        expires_at: expiresAt
+      });
+      
+    if (error) {
+      console.error('[SupabaseCache] setCache error:', error);
+    }
+    
+    // Asynchronously delete expired cache rows to keep database clean
+    const nowISO = new Date().toISOString();
+    supabase.from('cache').delete().lt('expires_at', nowISO).then();
+  } catch (err) {
+    console.error('[SupabaseCache] Exception in setCache:', err);
+  }
 };
 
-export const logAudit = (owner, repo, score, stars, forks, language, version) => {
-  const db = readDb();
-  // Filter out existing audit of the same repo to keep history list unique
-  db.history = db.history.filter(h => 
-    !(h.owner.toLowerCase() === owner.toLowerCase() && h.repo.toLowerCase() === repo.toLowerCase())
-  );
-  
-  db.history.unshift({
-    owner,
-    repo,
-    score,
-    stars,
-    forks,
-    primaryLanguage: language || 'Unknown',
-    version: version || null,
-    analyzedAt: new Date().toISOString()
-  });
-  
-  // Keep only the last 30 logs in query history
-  db.history = db.history.slice(0, 30);
-  writeDb(db);
+/**
+ * 3. logAudit(owner, repo, score, stars, forks, language, version)
+ * Upserts a repository analysis log to history list.
+ */
+export const logAudit = async (owner, repo, score, stars, forks, language, version) => {
+  try {
+    if (!supabase) return;
+    
+    const ownerKey = owner.toLowerCase();
+    const repoKey = repo.toLowerCase();
+    
+    const { error } = await supabase
+      .from('history')
+      .upsert({
+        owner: ownerKey,
+        repo: repoKey,
+        score,
+        stars,
+        forks,
+        primary_language: language || 'Unknown',
+        version: version || null,
+        analyzed_at: new Date().toISOString()
+      });
+      
+    if (error) {
+      console.error('[SupabaseHistory] logAudit error:', error);
+    }
+  } catch (err) {
+    console.error('[SupabaseHistory] Exception in logAudit:', err);
+  }
 };
 
-export const getHistory = () => {
-  const db = readDb();
-  return db.history || [];
+/**
+ * 4. getHistory()
+ * Returns the last 30 audit history entries ordered by analyzed_at desc.
+ */
+export const getHistory = async () => {
+  try {
+    if (!supabase) return [];
+    
+    const { data, error } = await supabase
+      .from('history')
+      .select('*')
+      .order('analyzed_at', { ascending: false })
+      .limit(30);
+      
+    if (error) {
+      console.error('[SupabaseHistory] getHistory error:', error);
+      return [];
+    }
+    
+    // Map fields back to frontend camelCase expectations
+    return data.map(item => ({
+      owner: item.owner,
+      repo: item.repo,
+      score: item.score,
+      stars: item.stars,
+      forks: item.forks,
+      primaryLanguage: item.primary_language,
+      version: item.version,
+      analyzedAt: item.analyzed_at
+    }));
+  } catch (err) {
+    console.error('[SupabaseHistory] Exception in getHistory:', err);
+    return [];
+  }
 };
 
-export const deleteHistoryEntry = (owner, repo) => {
-  const db = readDb();
-  const before = db.history.length;
-  db.history = db.history.filter(h =>
-    !(h.owner.toLowerCase() === owner.toLowerCase() && h.repo.toLowerCase() === repo.toLowerCase())
-  );
-  writeDb(db);
-  return db.history.length < before;
+/**
+ * 5. deleteHistoryEntry(owner, repo)
+ * Deletes specific repository audit entry.
+ */
+export const deleteHistoryEntry = async (owner, repo) => {
+  try {
+    if (!supabase) return false;
+    
+    const ownerKey = owner.toLowerCase();
+    const repoKey = repo.toLowerCase();
+    
+    const { error, status } = await supabase
+      .from('history')
+      .delete()
+      .eq('owner', ownerKey)
+      .eq('repo', repoKey);
+      
+    if (error) {
+      console.error('[SupabaseHistory] deleteHistoryEntry error:', error);
+      return false;
+    }
+    
+    return status >= 200 && status < 300;
+  } catch (err) {
+    console.error('[SupabaseHistory] Exception in deleteHistoryEntry:', err);
+    return false;
+  }
 };
 
-export const deleteCacheEntries = (owner, repo) => {
-  const db = readDb();
-  const prefix = `${owner.toLowerCase()}/${repo.toLowerCase()}`;
-  const before = db.cache.length;
-  db.cache = db.cache.filter(c => !c.key.endsWith(prefix));
-  writeDb(db);
-  return db.cache.length < before;
+/**
+ * 6. deleteCacheEntries(owner, repo)
+ * Deletes cache records for a specific repository.
+ */
+export const deleteCacheEntries = async (owner, repo) => {
+  try {
+    if (!supabase) return false;
+    
+    const suffix = `%${owner.toLowerCase()}/${repo.toLowerCase()}`;
+    
+    const { error, status } = await supabase
+      .from('cache')
+      .delete()
+      .like('key', suffix);
+      
+    if (error) {
+      console.error('[SupabaseCache] deleteCacheEntries error:', error);
+      return false;
+    }
+    
+    return status >= 200 && status < 300;
+  } catch (err) {
+    console.error('[SupabaseCache] Exception in deleteCacheEntries:', err);
+    return false;
+  }
 };

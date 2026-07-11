@@ -11,15 +11,18 @@ import {
   Users, 
   FileText,
   CheckCircle2,
-  Clock
+  Clock,
+  Award
 } from 'lucide-react';
-import { Insight, RepositoryOverview, CommitStats, ContributorsList } from '../types';
+import { Insight, RepositoryOverview, CommitStats, ContributorsList, HealthBreakdownItem } from '../types';
 
 interface Props {
   insights: Insight[];
   overview?: RepositoryOverview | null;
   commits?: CommitStats | null;
   contributors?: ContributorsList | null;
+  aiActive?: boolean;
+  healthBreakdown?: HealthBreakdownItem[];
 }
 
 interface Suggestion {
@@ -33,8 +36,8 @@ interface Suggestion {
   actionableStep: string;
 }
 
-export const InsightsPanel: React.FC<Props> = ({ insights, overview, commits, contributors }) => {
-  const [activeSubTab, setActiveSubTab] = useState<'ai-suggestions' | 'observations'>('ai-suggestions');
+export const InsightsPanel: React.FC<Props> = ({ insights, overview, commits, contributors, aiActive, healthBreakdown = [] }) => {
+  const [activeSubTab, setActiveSubTab] = useState<'ai-suggestions' | 'observations' | 'score-breakdown'>('ai-suggestions');
 
   // Compute dynamic AI Suggestions based on repo characteristics
   const aiSuggestions = useMemo(() => {
@@ -134,6 +137,22 @@ export const InsightsPanel: React.FC<Props> = ({ insights, overview, commits, co
     return list;
   }, [overview, contributors]);
 
+  const finalSuggestions = useMemo(() => {
+    if (aiActive && Array.isArray(insights) && insights.length > 0 && (insights[0] as any).aiReasoning) {
+      return (insights as any[]).map((s, idx) => ({
+        id: s.id || `ai-${idx}`,
+        category: s.category || 'Quality',
+        title: s.title || 'Advancement Item',
+        description: s.description || '',
+        aiReasoning: s.aiReasoning || '',
+        urgency: s.urgency || 'Medium',
+        impact: s.impact || '',
+        actionableStep: s.actionableStep || ''
+      }));
+    }
+    return aiSuggestions;
+  }, [aiActive, insights, aiSuggestions]);
+
   // Calculate a mock "Advancement Score" based on resolved vs pending items
   const advancementScore = useMemo(() => {
     if (!overview) return 0;
@@ -185,7 +204,7 @@ export const InsightsPanel: React.FC<Props> = ({ insights, overview, commits, co
         <div>
           <h3 className="text-[18px] font-extrabold text-text-heading tracking-tight flex items-center gap-2">
             <Cpu className="w-5 h-5 text-brand-primary animate-pulse" />
-            GitPulse AI Intelligence
+            GitPulse Intelligence
           </h3>
           <p className="text-[12px] text-text-secondary mt-0.5">Automated code audits, risk modeling, and repo suggestions</p>
         </div>
@@ -194,7 +213,7 @@ export const InsightsPanel: React.FC<Props> = ({ insights, overview, commits, co
         <div className="flex bg-slate-100 dark:bg-bg-secondary p-1 rounded-lg w-fit">
           <button
             onClick={() => setActiveSubTab('ai-suggestions')}
-            className={`px-3 py-1.5 rounded-md text-[12px] font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+            className={`w-44 justify-center px-3 py-1.5 rounded-md text-[12px] font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
               activeSubTab === 'ai-suggestions'
                 ? 'bg-white dark:bg-bg-card text-brand-primary shadow-soft'
                 : 'text-text-secondary hover:text-text-heading'
@@ -203,16 +222,29 @@ export const InsightsPanel: React.FC<Props> = ({ insights, overview, commits, co
             <Sparkles className="w-3.5 h-3.5" />
             AI Suggestions
           </button>
+          {!aiActive && (
+            <button
+              onClick={() => setActiveSubTab('observations')}
+              className={`w-44 justify-center px-3 py-1.5 rounded-md text-[12px] font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                activeSubTab === 'observations'
+                  ? 'bg-white dark:bg-bg-card text-brand-primary shadow-soft'
+                  : 'text-text-secondary hover:text-text-heading'
+              }`}
+            >
+              <FileText className="w-3.5 h-3.5" />
+              Repository Observations
+            </button>
+          )}
           <button
-            onClick={() => setActiveSubTab('observations')}
-            className={`px-3 py-1.5 rounded-md text-[12px] font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-              activeSubTab === 'observations'
+            onClick={() => setActiveSubTab('score-breakdown')}
+            className={`w-44 justify-center px-3 py-1.5 rounded-md text-[12px] font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeSubTab === 'score-breakdown'
                 ? 'bg-white dark:bg-bg-card text-brand-primary shadow-soft'
                 : 'text-text-secondary hover:text-text-heading'
             }`}
           >
-            <FileText className="w-3.5 h-3.5" />
-            Repository Observations
+            <Award className="w-3.5 h-3.5" />
+            Score Calculations
           </button>
         </div>
       </div>
@@ -220,81 +252,87 @@ export const InsightsPanel: React.FC<Props> = ({ insights, overview, commits, co
       {/* SUBTAB 1: AI Suggestions & Roadmap */}
       {activeSubTab === 'ai-suggestions' && (
         <div className="space-y-6 animate-fadeIn">
-          {/* AI Roadmap Overview header block */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 bg-gradient-to-r from-brand-primary/5 to-indigo-500/5 dark:from-brand-primary/10 dark:to-indigo-950/20 border border-brand-primary/20 rounded-xl p-5 items-center">
-            <div className="md:col-span-2 space-y-1.5">
-              <h4 className="text-[14px] font-bold text-text-heading flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-brand-primary" />
-                AI Advancement Roadmap
-              </h4>
-              <p className="text-[12.5px] text-text-secondary leading-relaxed">
-                We've scanned repository structure, language components, commits frequency, and collaboration health. Complete the suggested items below to increase your codebase security, compliance, and maintainer workflow.
-              </p>
-            </div>
-            <div className="flex flex-col items-center justify-center p-3 bg-white dark:bg-bg-card border border-border-card rounded-lg shadow-soft text-center">
-              <span className="text-[10px] font-bold text-text-secondary uppercase">Roadmap Score</span>
-              <p className="text-[28px] font-black text-brand-primary mt-0.5">{advancementScore}%</p>
-              <div className="w-full bg-slate-100 dark:bg-bg-secondary h-1.5 rounded-full mt-2 overflow-hidden">
-                <div 
-                  className="bg-brand-primary h-1.5 rounded-full transition-all duration-700" 
-                  style={{ width: `${advancementScore}%` }}
-                />
+          {!aiActive ? (
+            <div className="bg-slate-50 dark:bg-bg-secondary/40 border border-border-card rounded-xl p-8 text-center flex flex-col items-center justify-center space-y-3 max-w-sm mx-auto py-12">
+              <div className="p-4 rounded-full bg-brand-primary/10 text-brand-primary animate-pulse">
+                <Cpu className="w-8 h-8" />
               </div>
-            </div>
-          </div>
-
-          {/* List of Suggestions */}
-          <div className="space-y-4">
-            {aiSuggestions.map((s) => (
-              <div 
-                key={s.id}
-                className="bg-white dark:bg-bg-card border border-border-card rounded-xl p-5 shadow-soft hover:shadow-hover-card transition-all duration-200"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-                  <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-bg-secondary text-text-secondary text-[10px] font-bold uppercase">
-                      {s.category}
-                    </span>
-                    <h4 className="text-[14px] font-extrabold text-text-heading">{s.title}</h4>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${getUrgencyStyles(s.urgency)}`}>
-                      {s.urgency} Urgency
-                    </span>
-                  </div>
-                </div>
-
-                <p className="text-[12.5px] text-text-secondary leading-relaxed mb-3">
-                  {s.description}
+              <div className="space-y-1">
+                <h4 className="text-[15px] font-bold text-text-heading">AI Copilot</h4>
+                <p className="text-[13px] text-text-secondary font-medium">
+                  AI is in rest mode
                 </p>
-
-                {/* AI Reasoning block */}
-                <div className="bg-slate-50 dark:bg-bg-secondary/40 border border-border-divider/50 rounded-lg p-3.5 space-y-2 mb-4">
-                  <div className="flex items-center gap-1.5 text-text-heading text-[12px] font-bold">
-                    <Lightbulb className="w-3.5 h-3.5 text-brand-amber" />
-                    AI Copilot Analysis
-                  </div>
-                  <p className="text-[12px] text-text-secondary leading-relaxed italic">
-                    {s.aiReasoning}
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* AI Roadmap Overview header block */}
+              <div className="bg-gradient-to-r from-brand-primary/5 to-indigo-500/5 dark:from-brand-primary/10 dark:to-indigo-950/20 border border-brand-primary/20 rounded-xl p-5">
+                <div className="space-y-1.5">
+                  <h4 className="text-[14px] font-bold text-text-heading flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-brand-primary" />
+                    AI Advancement Roadmap
+                  </h4>
+                  <p className="text-[12.5px] text-text-secondary leading-relaxed">
+                    We've scanned repository structure, language components, commits frequency, and collaboration health. Complete the suggested items below to increase your codebase security, compliance, and maintainer workflow.
                   </p>
-                  <div className="flex items-center gap-1.5 pt-1.5 border-t border-border-divider/40 text-[11px] text-text-muted">
-                    <span className="font-bold text-brand-emerald">Projected Impact:</span>
-                    <span>{s.impact}</span>
-                  </div>
-                </div>
-
-                {/* Actionable Step */}
-                <div className="flex items-start gap-2 text-[12px] text-text-primary bg-blue-50/30 dark:bg-blue-950/10 border border-blue-100/50 dark:border-blue-900/10 rounded-lg p-3">
-                  <Zap className="w-4 h-4 text-brand-primary flex-shrink-0 mt-0.5" />
-                  <div>
-                    <span className="font-bold text-brand-primary">Next Action:</span>{' '}
-                    <span>{s.actionableStep}</span>
-                  </div>
                 </div>
               </div>
-            ))}
-          </div>
+
+              {/* List of Suggestions */}
+              <div className="space-y-4">
+                {finalSuggestions.map((s) => (
+                  <div 
+                    key={s.id}
+                    className="bg-white dark:bg-bg-card border border-border-card rounded-xl p-5 shadow-soft hover:shadow-hover-card transition-all duration-200"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                      <div className="flex items-center gap-2">
+                        <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-bg-secondary text-text-secondary text-[10px] font-bold uppercase">
+                          {s.category}
+                        </span>
+                        <h4 className="text-[14px] font-extrabold text-text-heading">{s.title}</h4>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${getUrgencyStyles(s.urgency)}`}>
+                          {s.urgency} Urgency
+                        </span>
+                      </div>
+                    </div>
+
+                    <p className="text-[12.5px] text-text-secondary leading-relaxed mb-3">
+                      {s.description}
+                    </p>
+
+                    {/* AI Reasoning block */}
+                    <div className="bg-slate-50 dark:bg-bg-secondary/40 border border-border-divider/50 rounded-lg p-3.5 space-y-2 mb-4">
+                      <div className="flex items-center gap-1.5 text-text-heading text-[12px] font-bold">
+                        <Lightbulb className="w-3.5 h-3.5 text-brand-amber" />
+                        AI Copilot Analysis
+                      </div>
+                      <p className="text-[12px] text-text-secondary leading-relaxed italic">
+                        {s.aiReasoning}
+                      </p>
+                      <div className="flex items-center gap-1.5 pt-1.5 border-t border-border-divider/40 text-[11px] text-text-muted">
+                        <span className="font-bold text-brand-emerald">Projected Impact:</span>
+                        <span>{s.impact}</span>
+                      </div>
+                    </div>
+
+                    {/* Actionable Step */}
+                    <div className="flex items-start gap-2 text-[12px] text-text-primary bg-blue-50/30 dark:bg-blue-950/10 border border-blue-100/50 dark:border-blue-900/10 rounded-lg p-3">
+                      <Zap className="w-4 h-4 text-brand-primary flex-shrink-0 mt-0.5" />
+                      <div>
+                        <span className="font-bold text-brand-primary">Next Action:</span>{' '}
+                        <span>{s.actionableStep}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       )}
 
@@ -323,6 +361,57 @@ export const InsightsPanel: React.FC<Props> = ({ insights, overview, commits, co
               })}
             </div>
           )}
+        </div>
+      )}
+
+      {/* SUBTAB 3: Score Calculations breakdown */}
+      {activeSubTab === 'score-breakdown' && (
+        <div className="space-y-6 animate-fadeIn">
+          {/* Scoring Formula header block */}
+          <div className="bg-slate-50 dark:bg-bg-secondary/40 border border-border-card rounded-xl p-5 space-y-2">
+            <h4 className="text-[13px] font-bold text-text-heading flex items-center gap-1.5">
+              <Award className="w-4 h-4 text-brand-primary" />
+              Repository Health Scoring Architecture
+            </h4>
+            <p className="text-[12px] text-text-secondary leading-relaxed">
+              The overall health score is an aggregate metric computed dynamically based on repository documentation, open-source presence, community contributions, and push velocity. Maximum points: <strong>100</strong>.
+            </p>
+            <div className="text-[11px] font-mono text-brand-primary bg-white dark:bg-bg-card border border-border-card rounded-md p-2 mt-2">
+              Formula: README (15pts) + License (5pts) + Issues (10pts) + Contributor Base (20pts) + Recent Activity (25pts) + Commit Recency (25pts)
+            </div>
+          </div>
+
+          {/* Breakdown checklist list */}
+          <div className="space-y-3.5">
+            {healthBreakdown.map((item, index) => (
+              <div 
+                key={index} 
+                className="bg-white dark:bg-bg-card border border-border-card rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-soft"
+              >
+                <div className="space-y-1 text-left">
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full ${item.passed ? 'bg-brand-emerald' : 'bg-brand-amber'}`} />
+                    <h5 className="text-[13.5px] font-bold text-text-heading">{item.metric}</h5>
+                  </div>
+                  <p className="text-[12px] text-text-secondary">{item.description}</p>
+                </div>
+
+                <div className="flex items-center gap-4 ml-4 md:ml-0 flex-shrink-0">
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                    item.passed 
+                      ? 'bg-emerald-50 dark:bg-emerald-950/20 text-brand-emerald border border-emerald-100 dark:border-emerald-900/10' 
+                      : 'bg-red-50 dark:bg-red-950/20 text-brand-red border border-red-100 dark:border-red-900/10'
+                  }`}>
+                    {item.passed ? 'Passed' : 'Failed'}
+                  </span>
+                  <div className="text-right min-w-[70px]">
+                    <span className="text-[15px] font-extrabold text-brand-primary">{item.score}</span>
+                    <span className="text-[11px] text-text-secondary"> / {item.maxScore} pts</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

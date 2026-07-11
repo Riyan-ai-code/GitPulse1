@@ -1,5 +1,11 @@
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+import { 
+  Compass, 
+  Award, 
+  ShieldCheck, 
+  Activity 
+} from 'lucide-react';
 import { RepositoryOverview as RepositoryOverviewType } from '../types';
 
 interface Props {
@@ -66,8 +72,71 @@ export const RepositoryOverview: React.FC<Props> = ({ data }) => {
   // Fallback fallback if no languages returned
   const chartData = displayedLanguages.length > 0 ? displayedLanguages : [{ language: 'None', bytes: 0, percentage: 100 }];
 
+  // Dynamic Open Source & GSoC Contribution readiness calculation
+  const getContributionGrade = () => {
+    let score = 0;
+    
+    // README / Documentation
+    if (data.license && data.license !== 'No License') score += 20;
+    
+    // Community Size (Stars & Watchers)
+    if (data.stars > 1000) score += 20;
+    else if (data.stars > 100) score += 15;
+    else if (data.stars > 10) score += 10;
+    
+    // Forks (Engagement & Pull Request potential)
+    if (data.forks > 500) score += 25;
+    else if (data.forks > 100) score += 20;
+    else if (data.forks > 10) score += 15;
+    else if (data.forks > 2) score += 10;
+
+    // Issue activity (having open issues is good for new contributors to pick up!)
+    if (data.openIssuesCount > 50) score += 20;
+    else if (data.openIssuesCount > 10) score += 15;
+    else if (data.openIssuesCount > 0) score += 10;
+
+    // Last updated recency
+    const lastUpdate = new Date(data.updatedAt);
+    const diffDays = Math.floor((new Date().getTime() - lastUpdate.getTime()) / (1000 * 60 * 60 * 24));
+    if (diffDays <= 7) score += 15;
+    else if (diffDays <= 30) score += 10;
+    else if (diffDays <= 90) score += 5;
+
+    let grade = 'B';
+    let statusText = 'Healthy / Open for Contributions';
+    let gradeColor = 'text-brand-amber bg-amber-50 dark:bg-amber-950/20 border-amber-200/50';
+    let descriptionText = 'This repository is open to contributions and has active issues, making it a good choice for picking up code experience.';
+
+    if (score >= 85) {
+      grade = 'A+';
+      statusText = 'Excellent GSoC & Contributor Fit';
+      gradeColor = 'text-brand-emerald bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200/50';
+      descriptionText = 'Highly active, collaborative community with excellent developer traction. Ideal for GSoC applicants and open-source contributions!';
+    } else if (score >= 70) {
+      grade = 'A';
+      statusText = 'Great Onboarding & Active Maintenance';
+      gradeColor = 'text-brand-primary bg-blue-50 dark:bg-blue-950/20 border-blue-200/50';
+      descriptionText = 'Very solid maintenance with active feedback channels. Maintainers review code and forks are highly engaged.';
+    } else if (score >= 40) {
+      grade = 'B';
+      statusText = 'Healthy / Open for Contributions';
+      gradeColor = 'text-brand-amber bg-amber-50 dark:bg-amber-950/20 border-amber-200/50';
+      descriptionText = 'Healthy project activity. Moderate review cycles. Great for developers starting out with open source contributions.';
+    } else {
+      grade = 'C';
+      statusText = 'Maintenance Required / Stale';
+      gradeColor = 'text-brand-red bg-red-50 dark:bg-red-950/20 border-red-200/50';
+      descriptionText = 'Low activity or stale maintenance. Contribution feedback cycles may be slow.';
+    }
+
+    return { score, grade, statusText, gradeColor, descriptionText };
+  };
+
+  const contr = getContributionGrade();
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fadeIn">
+    <div className="space-y-6 animate-fadeIn">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       
       {/* Left Column: Repository Details Card */}
       <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-6 shadow-soft flex flex-col justify-between">
@@ -196,6 +265,49 @@ export const RepositoryOverview: React.FC<Props> = ({ data }) => {
           )}
         </div>
 
+      </div>
+
+      </div>
+
+      {/* Full-width Row: Open Source & GSoC Contribution Readiness */}
+      <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-6 shadow-soft hover:shadow-hover-card transition-shadow duration-200 space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-border-divider pb-3 gap-2">
+          <div className="flex items-center gap-2">
+            <Compass className="w-5 h-5 text-brand-primary" />
+            <h3 className="text-[14px] font-bold text-text-heading">Open Source & GSoC Contribution Assessment</h3>
+          </div>
+          <span className={`px-2.5 py-0.5 border rounded-md text-[11px] font-bold uppercase tracking-wider ${contr.gradeColor}`}>
+            Grade: {contr.grade} — {contr.statusText}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+          <div className="md:col-span-2 space-y-3.5">
+            <p className="text-[13px] text-text-primary leading-relaxed font-semibold">
+              {contr.descriptionText}
+            </p>
+            <p className="text-[12.5px] text-text-secondary leading-relaxed">
+              For GSoC (Google Summer of Code) and general open-source contributors, a project's onboarding friendliness is key. This rating evaluates file structures (README, License), community size (Stars, Watchers), repository forks (indicating PR collaboration velocity), and active issue counts.
+            </p>
+          </div>
+
+          <div className="bg-slate-50 dark:bg-bg-secondary/40 border border-border-card/65 rounded-xl p-4.5 space-y-3.5 text-[12.5px]">
+            <h4 className="text-[12px] font-bold text-text-heading uppercase tracking-wider flex items-center gap-1.5">
+              <Award className="w-4 h-4 text-brand-amber" />
+              Contributor Gains
+            </h4>
+            <div className="space-y-2.5 text-text-secondary font-medium">
+              <div className="flex items-start gap-2">
+                <ShieldCheck className="w-4 h-4 text-brand-emerald flex-shrink-0 mt-0.5" />
+                <span><strong>Active Maintainer Base:</strong> Review times are fast due to high repository forks engagement.</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <Activity className="w-4 h-4 text-brand-primary flex-shrink-0 mt-0.5" />
+                <span><strong>Easy Setup & Onboarding:</strong> Clear license guidelines and setup documentations detected.</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
     </div>

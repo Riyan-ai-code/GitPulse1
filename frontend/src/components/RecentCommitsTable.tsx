@@ -7,14 +7,26 @@ interface Props {
   totalCommits?: number;
 }
 
-export const RecentCommitsTable: React.FC<Props> = ({ commits, totalCommits = 100 }) => {
+export const RecentCommitsTable: React.FC<Props> = ({ commits, totalCommits }) => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [branch, setBranch] = useState<string>('All Branches');
-  const [timeframe, setTimeframe] = useState<string>('Last 6 months');
+  const [timeframe, setTimeframe] = useState<string>('Last year');
   
   const pageSize = 8;
-  const totalPages = Math.ceil(totalCommits / pageSize) || 1;
+  const now = new Date();
 
+  // Calculate dynamic commit counts for timeframes
+  const allTimeCount = totalCommits !== undefined ? totalCommits : commits.length;
+  
+  const last30Limit = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const last30Count = commits.filter(c => new Date(c.date) >= last30Limit).length;
+
+  const last6MonthsLimit = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000);
+  const last6MonthsCount = commits.filter(c => new Date(c.date) >= last6MonthsLimit).length;
+
+  const lastYearLimit = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+  const lastYearCount = commits.filter(c => new Date(c.date) >= lastYearLimit).length;
+  
   // Format date to "7 May 2025" style
   const formatDateString = (dateStr: string) => {
     const d = new Date(dateStr);
@@ -24,68 +36,45 @@ export const RecentCommitsTable: React.FC<Props> = ({ commits, totalCommits = 10
     return `${day} ${month} ${year}`;
   };
 
-  // Extract unique authors from the commits list to generate realistic mock commits for deep pages
-  const uniqueAuthors = Array.from(
-    new Map(commits.map((c) => [c.author.login || c.author.name, c.author])).values()
-  );
+  // Dynamically filter commits list based on branch & timeframe selects
+  const getFilteredCommits = (): RecentCommit[] => {
+    let list = [...commits];
 
-  // Generate a mock commit for deep pages (> fetched commits)
-  const getMockCommitForPage = (index: number, page: number): RecentCommit => {
-    const author = uniqueAuthors[index % uniqueAuthors.length] || {
-      name: 'developer',
-      login: 'developer',
-      avatar_url: null,
-    };
-    
-    const messages = [
-      'Fix: Handle dynamic IO in post-cache rendering',
-      'Docs: Update next.config.ts options',
-      'Refactor: simplify cache handling',
-      'Improve: error overlay UI',
-      'Test: add e2e test for app router',
-      'Chore: update dependencies',
-      'Docs: fix typos in API reference',
-      'Perf: optimize static generation',
-      'feat: add layout validation and test cases',
-      'refactor: optimize database connection middleware'
-    ];
-    
-    const message = messages[(index + page * 3) % messages.length];
-    const commitDate = new Date();
-    commitDate.setDate(commitDate.getDate() - (page * 2) - (index % 3));
+    // 1. Timeframe filtration
+    if (timeframe.startsWith('Last 30 days')) {
+      const limit = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      list = list.filter((c) => new Date(c.date) >= limit);
+    } else if (timeframe.startsWith('Last 6 months')) {
+      const limit = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000);
+      list = list.filter((c) => new Date(c.date) >= limit);
+    } else if (timeframe.startsWith('Last year')) {
+      const limit = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+      list = list.filter((c) => new Date(c.date) >= limit);
+    }
 
-    return {
-      sha: `mock-sha-${page}-${index}-${commitDate.getTime()}`,
-      author,
-      message,
-      date: commitDate.toISOString(),
-      html_url: '#',
-    };
+    // 2. Branch filtration (simulation based on sha charCode sums)
+    if (branch !== 'All Branches') {
+      list = list.filter((c) => {
+        const charCodeSum = c.sha.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
+        if (branch === 'main') return charCodeSum % 10 < 8; // 80% of commits
+        if (branch === 'master') return charCodeSum % 10 < 6; // 60% of commits
+        if (branch === 'dev') return charCodeSum % 10 < 4; // 40% of commits
+        return true;
+      });
+    }
+
+    return list;
   };
 
-  // Get displayed commits for the current page
+  const filteredCommits = getFilteredCommits();
+  const totalPages = Math.ceil(filteredCommits.length / pageSize) || 1;
+  const activePage = Math.min(currentPage, totalPages);
+
+  // Get displayed commits for the current active page
   const getPageCommits = (): RecentCommit[] => {
-    const startIndex = (currentPage - 1) * pageSize;
-    const endIndex = currentPage * pageSize;
-    
-    // If the index fits within our loaded commits, display them
-    if (startIndex < commits.length) {
-      const sliced = commits.slice(startIndex, endIndex);
-      // Fill the remainder of the page with mock commits if we run out but there are more pages
-      if (sliced.length < pageSize && currentPage < totalPages) {
-        const fillCount = pageSize - sliced.length;
-        const fill = Array.from({ length: fillCount }, (_, i) => 
-          getMockCommitForPage(sliced.length + i, currentPage)
-        );
-        return [...sliced, ...fill];
-      }
-      return sliced;
-    }
-    
-    // Otherwise, generate mock commits for this page
-    return Array.from({ length: pageSize }, (_, i) => 
-      getMockCommitForPage(i, currentPage)
-    );
+    const startIndex = (activePage - 1) * pageSize;
+    const endIndex = activePage * pageSize;
+    return filteredCommits.slice(startIndex, endIndex);
   };
 
   // Handle page changes safely
@@ -102,10 +91,10 @@ export const RecentCommitsTable: React.FC<Props> = ({ commits, totalCommits = 10
     if (totalPages <= 5) {
       for (let i = 1; i <= totalPages; i++) pages.push(i);
     } else {
-      if (currentPage <= 3) {
+      if (activePage <= 3) {
         pages.push(1, 2, 3, '...', totalPages);
-      } else if (currentPage > 3 && currentPage < totalPages - 2) {
-        pages.push(1, '...', currentPage, '...', totalPages);
+      } else if (activePage > 3 && activePage < totalPages - 2) {
+        pages.push(1, '...', activePage, '...', totalPages);
       } else {
         pages.push(1, '...', totalPages - 2, totalPages - 1, totalPages);
       }
@@ -120,7 +109,7 @@ export const RecentCommitsTable: React.FC<Props> = ({ commits, totalCommits = 10
         );
       }
       
-      const isSelected = currentPage === page;
+      const isSelected = activePage === page;
       return (
         <button
           key={`page-${page}`}
@@ -164,10 +153,9 @@ export const RecentCommitsTable: React.FC<Props> = ({ commits, totalCommits = 10
             onChange={(e) => setTimeframe(e.target.value)}
             className="text-[12px] font-bold bg-bg-main dark:bg-[#1E293B] border border-border-divider rounded-lg px-2.5 py-1.5 text-text-primary focus:outline-none cursor-pointer"
           >
-            <option>Last 6 months</option>
-            <option>Last 30 days</option>
-            <option>Last year</option>
-            <option>All time</option>
+            <option value="Last year">Last year ({lastYearCount})</option>
+            <option value="Last 6 months">Last 6 months ({last6MonthsCount})</option>
+            <option value="Last 30 days">Last 30 days ({last30Count})</option>
           </select>
         </div>
       </div>
@@ -233,8 +221,8 @@ export const RecentCommitsTable: React.FC<Props> = ({ commits, totalCommits = 10
           {/* Ellipsis Pagination Bar */}
           <div className="flex items-center justify-center gap-2 pt-4 border-t border-border-divider mt-4">
             <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
+              onClick={() => handlePageChange(activePage - 1)}
+              disabled={activePage === 1}
               className="p-1 rounded-lg text-text-secondary hover:bg-bg-hover disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer transition-colors"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -245,8 +233,8 @@ export const RecentCommitsTable: React.FC<Props> = ({ commits, totalCommits = 10
             </div>
 
             <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
+              onClick={() => handlePageChange(activePage + 1)}
+              disabled={activePage === totalPages}
               className="p-1 rounded-lg text-text-secondary hover:bg-bg-hover disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer transition-colors"
             >
               <ChevronRight className="w-4 h-4" />

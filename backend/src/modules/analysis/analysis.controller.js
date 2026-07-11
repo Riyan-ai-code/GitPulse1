@@ -12,7 +12,7 @@ export const getAnalysis = async (req, res, next) => {
   }
 
   const cacheKey = `analysis:${owner.toLowerCase()}/${repo.toLowerCase()}`;
-  const cachedData = fileDb.getCache(cacheKey);
+  const cachedData = await fileDb.getCache(cacheKey);
   if (cachedData) {
     return res.json(cachedData);
   }
@@ -21,7 +21,7 @@ export const getAnalysis = async (req, res, next) => {
     const analysis = await analysisService.analyzeRepository(owner, repo, {
       skipHistory: skipHistory === 'true'
     });
-    fileDb.setCache(cacheKey, analysis);
+    await fileDb.setCache(cacheKey, analysis);
     return res.json(analysis);
   } catch (error) {
     next(error);

@@ -26,7 +26,9 @@ import {
   LogOut,
   Lock,
   History,
-  Trash2
+  Trash2,
+  Layers,
+  Printer
 } from 'lucide-react';
 import {
   fetchRepositoryOverview,
@@ -56,6 +58,7 @@ import RecentCommitsTable from '../components/RecentCommitsTable';
 import InsightsPanel from '../components/InsightsPanel';
 import CodebaseComposition from '../components/CodebaseComposition';
 import PrsIssuesPanel from '../components/PrsIssuesPanel';
+import ScoreboardPanel from '../components/ScoreboardPanel';
 import Skeleton from '../components/Skeleton';
 
 const GithubIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -90,7 +93,21 @@ const GithubIconLarge = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-type TabType = 'dashboard' | 'overview' | 'commits' | 'contributors' | 'quality' | 'insights' | 'compare' | 'prs-issues' | 'recent-audits' | 'about';
+type TabType = 'composition' | 'overview' | 'commits' | 'contributors' | 'quality' | 'insights' | 'compare' | 'prs-issues' | 'recent-audits' | 'about' | 'scoreboard';
+
+const formatSizeForPrint = (kb: number) => {
+  if (kb < 1024) return `${kb} KB`;
+  return `${(kb / 1024).toFixed(1)} MB`;
+};
+
+const formatDateForPrint = (dateStr: string | null) => {
+  if (!dateStr) return 'N/A';
+  const d = new Date(dateStr);
+  const day = d.getDate();
+  const month = d.toLocaleDateString('en-US', { month: 'short' });
+  const year = d.getFullYear();
+  return `${day} ${month} ${year}`;
+};
 
 export default function LandingPage() {
   const [analyzedRepo, setAnalyzedRepo] = useState<{ owner: string; repo: string } | null>(null);
@@ -164,11 +181,20 @@ export default function LandingPage() {
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [tabHistory, setTabHistory] = useState<TabType[]>([]);
 
+  useEffect(() => {
+    if (activeTab === 'recent-audits' && currentUser) {
+      loadHistoryList();
+    }
+  }, [activeTab, currentUser]);
+
   const navigateToTab = (tab: TabType, pushToHistory = true) => {
     if (pushToHistory && activeTab !== tab) {
       setTabHistory(prev => [...prev, activeTab]);
     }
     setActiveTab(tab);
+    if (tab === 'recent-audits') {
+      loadHistoryList();
+    }
   };
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
 
@@ -341,6 +367,7 @@ export default function LandingPage() {
       if (repoParam) {
         const parts = repoParam.split('/');
         if (parts.length === 2) {
+          shouldSkipHistoryRef.current = false;
           setAnalyzedRepo({ owner: parts[0], repo: parts[1] });
           if (inputValue !== repoParam) {
             setInputValue(repoParam);
@@ -609,15 +636,15 @@ export default function LandingPage() {
           {/* Navigation Links */}
           <nav className="px-3 space-y-1">
             <button
-              onClick={() => navigateToTab('dashboard')}
+              onClick={() => navigateToTab('composition')}
               className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-[14px] font-semibold transition-colors cursor-pointer ${
-                activeTab === 'dashboard'
+                activeTab === 'composition'
                   ? 'bg-brand-primary-light text-brand-primary dark:bg-brand-primary/10'
                   : 'text-text-secondary hover:bg-bg-secondary hover:text-text-heading'
               }`}
             >
-              <LayoutDashboard className="w-[18px] h-[18px]" />
-              Dashboard
+              <Layers className="w-[18px] h-[18px]" />
+              Codebase Map
             </button>
 
             <button
@@ -630,6 +657,18 @@ export default function LandingPage() {
             >
               <BookOpen className="w-[18px] h-[18px]" />
               Overview
+            </button>
+
+            <button
+              onClick={() => navigateToTab('scoreboard')}
+              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-[14px] font-semibold transition-colors cursor-pointer ${
+                activeTab === 'scoreboard'
+                  ? 'bg-brand-primary-light text-brand-primary dark:bg-brand-primary/10'
+                  : 'text-text-secondary hover:bg-bg-secondary hover:text-text-heading'
+              }`}
+            >
+              <Activity className="w-[18px] h-[18px]" />
+              Scoreboard
             </button>
 
             <button
@@ -822,37 +861,13 @@ export default function LandingPage() {
             </button>
 
             {overview && (
-              <div className="relative no-print">
-                <button
-                  onClick={() => setShowExportMenu(!showExportMenu)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1 border border-border-divider rounded-lg bg-bg-main text-[13px] font-bold text-text-primary hover:bg-bg-secondary transition-colors cursor-pointer"
-                >
-                  <FileText className="w-3.5 h-3.5" />
-                  Export
-                </button>
-                {showExportMenu && (
-                  <div className="absolute right-0 mt-1.5 w-40 rounded-lg border border-border-divider bg-bg-card shadow-soft z-20 py-1.5 no-print">
-                    <button
-                      onClick={() => {
-                        setShowExportMenu(false);
-                        window.print();
-                      }}
-                      className="w-full text-left px-3.5 py-1.5 text-[12.5px] font-semibold text-text-primary hover:bg-bg-secondary cursor-pointer"
-                    >
-                      Export PDF
-                    </button>
-                    <button
-                      onClick={() => {
-                        setShowExportMenu(false);
-                        setShowBadgeModal(true);
-                      }}
-                      className="w-full text-left px-3.5 py-1.5 text-[12.5px] font-semibold text-text-primary hover:bg-bg-secondary cursor-pointer"
-                    >
-                      Markdown Badge
-                    </button>
-                  </div>
-                )}
-              </div>
+              <button
+                onClick={() => setShowBadgeModal(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1 border border-border-divider rounded-lg bg-bg-main text-[13px] font-bold text-text-primary hover:bg-bg-secondary transition-colors cursor-pointer no-print"
+              >
+                <Award className="w-3.5 h-3.5 text-brand-primary" />
+                Markdown Badge
+              </button>
             )}
 
             {overview && (
@@ -952,6 +967,7 @@ export default function LandingPage() {
                                 deleteRepoAnalysis(analyzedRepo.owner, analyzedRepo.repo)
                               ]);
                               loadHistoryList();
+                              resetSearch();
                             }}
                             className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 border border-border-card text-[12px] font-bold rounded-lg text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/20 hover:bg-red-100 dark:hover:bg-red-950/40 cursor-pointer transition-colors"
                             title="Delete history and cached analysis for this repo"
@@ -972,149 +988,12 @@ export default function LandingPage() {
 
 
           {/* Dynamic tabs render */}
-              {activeTab === 'dashboard' && (
-                <div className="space-y-6">
-                  {overview ? (
-                    <>
-                      {/* Row 1: KPI scores */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {/* Resume Readiness Score */}
-                        {loadingAnalysis || !analysis ? (
-                          <Skeleton className="h-28" />
-                        ) : (
-                          <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-5 shadow-soft hover:shadow-hover-card transition-all duration-200 flex flex-col justify-between">
-                            <div>
-                              <p className="text-[12px] font-semibold text-text-secondary uppercase tracking-wider">Health Score</p>
-                              <div className="flex items-baseline gap-2 mt-2">
-                                <span className="text-[32px] font-extrabold text-text-heading">{analysis.healthScore}</span>
-                                <span className="text-[14px] text-text-secondary">/100</span>
-                                <span className={`text-[12px] font-bold px-2 py-0.5 rounded-full ml-auto ${getHealthBadgeStyles(analysis.healthScore)}`}>
-                                  {getHealthText(analysis.healthScore)}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="mt-3 bg-slate-100 dark:bg-bg-secondary rounded-full h-1.5 overflow-hidden">
-                              <div
-                                className={`h-full rounded-full transition-all duration-500 ${
-                                  analysis.healthScore >= 90
-                                    ? 'bg-brand-emerald'
-                                    : analysis.healthScore >= 70
-                                    ? 'bg-brand-amber'
-                                    : 'bg-brand-red'
-                                }`}
-                                style={{ width: `${analysis.healthScore}%` }}
-                              />
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Total Commits */}
-                        {loadingCommits || !commits ? (
-                          <Skeleton className="h-28" />
-                        ) : (
-                          <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-5 shadow-soft hover:shadow-hover-card transition-all duration-200 flex flex-col justify-between">
-                            <div>
-                              <p className="text-[12px] font-semibold text-text-secondary uppercase tracking-wider">Total Commits</p>
-                              <div className="text-[32px] font-extrabold text-text-heading mt-2">
-                                {commits.totalCommits.toLocaleString()}
-                              </div>
-                            </div>
-                            <p className="text-[11px] text-text-secondary mt-2">All commits recorded</p>
-                          </div>
-                        )}
-
-                        {/* Contributors */}
-                        {loadingContributors || !contributors ? (
-                          <Skeleton className="h-28" />
-                        ) : (
-                          <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-5 shadow-soft hover:shadow-hover-card transition-all duration-200 flex flex-col justify-between">
-                            <div>
-                              <p className="text-[12px] font-semibold text-text-secondary uppercase tracking-wider">Contributors</p>
-                              <div className="text-[32px] font-extrabold text-text-heading mt-2">
-                                {contributors.contributors.length.toLocaleString()}
-                              </div>
-                            </div>
-                            <p className="text-[11px] text-text-secondary mt-2">Top contributors active</p>
-                          </div>
-                        )}
-
-                        {/* Commits Last 30 Days */}
-                        {loadingCommits || !commits ? (
-                          <Skeleton className="h-28" />
-                        ) : (
-                          <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-5 shadow-soft hover:shadow-hover-card transition-all duration-200 flex flex-col justify-between">
-                            <div>
-                              <p className="text-[12px] font-semibold text-text-secondary uppercase tracking-wider">Commits (Last 30 Days)</p>
-                              <div className="text-[32px] font-extrabold text-text-heading mt-2">
-                                {commits.commitsLast30Days.toLocaleString()}
-                              </div>
-                            </div>
-                            <p className="text-[11px] text-text-secondary mt-2">Active month velocity</p>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Row 2: Commit Activity */}
-                      <div>
-                        {loadingCommits || !commits ? (
-                          <Skeleton className="h-[340px]" />
-                        ) : (
-                          <CommitAnalysis data={commits} />
-                        )}
-                      </div>
-
-                      {/* Row 3: Commits Table & Contributors List */}
-                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div className="lg:col-span-2">
-                          {loadingCommits || !commits ? (
-                            <Skeleton className="h-[350px]" />
-                          ) : (
-                            <RecentCommitsTable commits={commits.recentCommits} />
-                          )}
-                        </div>
-                        <div className="lg:col-span-1">
-                          {loadingContributors || !contributors ? (
-                            <Skeleton className="h-[350px]" />
-                          ) : (
-                            <ContributorsList data={contributors} commits={commits?.recentCommits || []} />
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Row 4: Language Chart & Insights Panel */}
-                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div className="lg:col-span-1">
-                          {loadingOverview || !overview ? (
-                            <Skeleton className="h-[280px]" />
-                          ) : (
-                            <LanguageChart languages={overview.languages} />
-                          )}
-                        </div>
-                        <div className="lg:col-span-2">
-                          {loadingAnalysis || !analysis ? (
-                            <Skeleton className="h-[280px]" />
-                          ) : (
-                            <InsightsPanel 
-                              insights={analysis.insights} 
-                              overview={overview}
-                              commits={commits}
-                              contributors={contributors}
-                            />
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Row 5: Codebase Composition Treemap Explorer */}
-                      <div className="grid grid-cols-1 gap-6">
-                        <CodebaseComposition 
-                          compositionData={composition} 
-                          loading={loadingComposition} 
-                        />
-                      </div>
-                    </>
-                  ) : (
-                    <EmptyStateWorkspace />
-                  )}
+              {activeTab === 'composition' && (
+                <div className="space-y-6 animate-fadeIn">
+                  <CodebaseComposition 
+                    compositionData={composition} 
+                    loading={loadingComposition} 
+                  />
                 </div>
               )}
 
@@ -1173,6 +1052,25 @@ export default function LandingPage() {
                 </div>
               )}
 
+              {activeTab === 'scoreboard' && (
+                <div className="space-y-6 animate-fadeIn">
+                  {loadingAnalysis || loadingOverview || loadingCommits ? (
+                    <div className="space-y-6 animate-pulse">
+                      <Skeleton className="h-28 w-full" />
+                      <Skeleton className="h-[400px] w-full" />
+                    </div>
+                  ) : analysis && overview && commits ? (
+                    <ScoreboardPanel 
+                      data={analysis} 
+                      overview={overview} 
+                      commits={commits} 
+                    />
+                  ) : (
+                    <EmptyStateWorkspace />
+                  )}
+                </div>
+              )}
+
               {activeTab === 'commits' && (
                 <div className="space-y-6 animate-fadeIn">
                   {loadingCommits ? (
@@ -1180,7 +1078,7 @@ export default function LandingPage() {
                   ) : commits ? (
                     <>
                       <CommitAnalysis data={commits} />
-                      <RecentCommitsTable commits={commits.recentCommits} />
+                      <RecentCommitsTable commits={commits.recentCommits} totalCommits={commits.totalCommits} />
                     </>
                   ) : (
                     <EmptyStateWorkspace />
@@ -1222,6 +1120,8 @@ export default function LandingPage() {
                       overview={overview}
                       commits={commits}
                       contributors={contributors}
+                      aiActive={analysis.aiActive}
+                      healthBreakdown={analysis.healthBreakdown}
                     />
                   ) : (
                     <EmptyStateWorkspace />
@@ -1236,7 +1136,7 @@ export default function LandingPage() {
               )}
 
               {activeTab === 'prs-issues' && (
-                <div className="max-w-4xl mx-auto animate-fadeIn">
+                <div className="w-full animate-fadeIn">
                   {overview ? (
                     <PrsIssuesPanel owner={overview.owner.login} repo={overview.name} />
                   ) : (
@@ -1246,7 +1146,7 @@ export default function LandingPage() {
               )}
 
               {activeTab === 'recent-audits' && (
-                <div className="max-w-4xl mx-auto space-y-6 animate-fadeIn">
+                <div className="w-full space-y-6 animate-fadeIn">
                   <div className="flex items-center gap-2.5 text-text-heading border-b border-border-divider pb-3">
                     <History className="w-5 h-5 text-brand-primary" />
                     <h2 className="text-[16px] font-bold">Recent Audits History</h2>
@@ -1272,10 +1172,10 @@ export default function LandingPage() {
                       </button>
                     </div>
                   ) : historyList.length === 0 ? (
-                    <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-8 text-center text-text-secondary border-dashed max-w-md mx-auto">
-                      <History className="w-8 h-8 text-text-muted mx-auto mb-2 animate-pulse" />
-                      <h3 className="text-[14px] font-bold text-text-heading">No Audits Found</h3>
-                      <p className="text-[12px] text-text-muted mt-1">You haven't audited any repositories yet.</p>
+                    <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-12 text-center text-text-secondary border-dashed w-full flex flex-col items-center justify-center min-h-[260px]">
+                      <History className="w-9 h-9 text-text-muted mb-3.5 animate-pulse" />
+                      <h3 className="text-[15px] font-bold text-text-heading">No Audits Found</h3>
+                      <p className="text-[12px] text-text-muted mt-1 max-w-xs mx-auto">You haven't audited any repositories yet.</p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1320,6 +1220,9 @@ export default function LandingPage() {
                                   deleteRepoAnalysis(repo.owner, repo.repo)
                                 ]);
                                 loadHistoryList();
+                                if (analyzedRepo && analyzedRepo.owner.toLowerCase() === repo.owner.toLowerCase() && analyzedRepo.repo.toLowerCase() === repo.repo.toLowerCase()) {
+                                  resetSearch();
+                                }
                               }}
                               className="p-1.5 rounded-md text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 cursor-pointer transition-colors ml-auto"
                               title="Delete history and cached analysis"

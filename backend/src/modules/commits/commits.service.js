@@ -45,16 +45,37 @@ export const getCommitStats = async (owner, repo) => {
     until: thirtyDaysAgoISO
   });
 
-  // 4. Fetch recent commits (max 100) to build list and activity graph
+  // 4. Fetch recent commits (up to 500) to build list and activity graph
   let recentCommits = [];
   let lastCommitDate = null;
+  const MAX_COMMITS_TO_FETCH = 500;
+
   try {
-    const { data } = await githubClient.get(`/repos/${owner}/${repo}/commits`, {
-      params: { per_page: 100 }
-    });
-    recentCommits = data;
-    if (data.length > 0) {
-      lastCommitDate = data[0].commit.committer.date;
+    let page = 1;
+    let keepFetching = true;
+
+    while (keepFetching && recentCommits.length < MAX_COMMITS_TO_FETCH) {
+      const { data } = await githubClient.get(`/repos/${owner}/${repo}/commits`, {
+        params: { 
+          per_page: 100,
+          page: page
+        }
+      });
+
+      if (!data || data.length === 0) {
+        keepFetching = false;
+      } else {
+        recentCommits.push(...data);
+        if (data.length < 100) {
+          keepFetching = false;
+        } else {
+          page++;
+        }
+      }
+    }
+
+    if (recentCommits.length > 0) {
+      lastCommitDate = recentCommits[0].commit.committer.date;
     }
   } catch (error) {
     if (error.response && error.response.status === 409) {
@@ -66,7 +87,7 @@ export const getCommitStats = async (owner, repo) => {
   }
 
   // 5. Build recent commits list (formatted for frontend display)
-  const formattedCommits = recentCommits.slice(0, 100).map(c => ({
+  const formattedCommits = recentCommits.map(c => ({
     sha: c.sha,
     author: {
       name: c.commit.author.name,
@@ -78,10 +99,11 @@ export const getCommitStats = async (owner, repo) => {
     html_url: c.html_url
   }));
 
-  // 6. Build commit activity graph (commits per day for the last 30 days)
+  // 6. Build commit activity graph (commits per day for the last 30 days from the latest commit)
+  const baseDate = lastCommitDate ? new Date(lastCommitDate) : new Date();
   const activityMap = {};
   for (let i = 29; i >= 0; i--) {
-    const d = new Date();
+    const d = new Date(baseDate.getTime());
     d.setDate(d.getDate() - i);
     const dateStr = d.toISOString().split('T')[0];
     activityMap[dateStr] = 0;
