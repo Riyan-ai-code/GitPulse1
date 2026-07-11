@@ -1157,7 +1157,7 @@ export default function LandingPage() {
               )}
 
               {activeTab === 'contributors' && (
-                <div className="max-w-5xl w-full mx-auto animate-fadeIn">
+                <div className="space-y-6 animate-fadeIn">
                   {loadingContributors ? (
                     <Skeleton className="h-[400px]" />
                   ) : contributors ? (
@@ -1181,11 +1181,16 @@ export default function LandingPage() {
               )}
 
               {activeTab === 'insights' && (
-                <div className="max-w-3xl mx-auto animate-fadeIn">
+                <div className="space-y-6 animate-fadeIn">
                   {loadingAnalysis ? (
                     <Skeleton className="h-[400px]" />
                   ) : analysis ? (
-                    <InsightsPanel insights={analysis.insights} />
+                    <InsightsPanel 
+                      insights={analysis.insights} 
+                      overview={overview}
+                      commits={commits}
+                      contributors={contributors}
+                    />
                   ) : (
                     <EmptyStateWorkspace />
                   )}
