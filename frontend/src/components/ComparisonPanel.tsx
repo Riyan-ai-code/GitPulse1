@@ -209,7 +209,7 @@ export const ComparisonPanel: React.FC = () => {
     let wins2 = 0;
 
     metrics.forEach(m => {
-      const c = m.comp(m.v1, m.v2);
+      const c = (m.comp as (a: any, b: any) => number)(m.v1, m.v2);
       if (c > 0) wins1++;
       if (c < 0) wins2++;
     });
@@ -391,7 +391,7 @@ export const ComparisonPanel: React.FC = () => {
                 </thead>
                 <tbody className="divide-y divide-border-divider text-[13px] font-semibold text-text-primary">
                   {scorecard && scorecard.metrics.map(metric => {
-                    const compResult = metric.comp(metric.v1, metric.v2);
+                    const compResult = (metric.comp as (a: any, b: any) => number)(metric.v1, metric.v2);
                     const win1 = compResult > 0;
                     const win2 = compResult < 0;
 

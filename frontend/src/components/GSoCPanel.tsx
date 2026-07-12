@@ -24,6 +24,7 @@ export const GSoCPanel: React.FC<Props> = () => {
   const [error, setError] = useState<string | null>(null);
   
   // Search & Filter state
+  const [subTab, setSubTab] = useState<'browse' | 'leaderboard'>('browse');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedYear, setSelectedYear] = useState<string>('All');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
@@ -131,6 +132,24 @@ export const GSoCPanel: React.FC<Props> = () => {
     };
   }, [filteredOrgs, selectedYear]);
 
+  // Calculate top 15 organizations by total accepted projects
+  const leaderboard = useMemo(() => {
+    return orgs.map(org => {
+      let totalProjects = 0;
+      if (org.years) {
+        Object.values(org.years).forEach(info => {
+          totalProjects += info.num_projects || 0;
+        });
+      }
+      return {
+        ...org,
+        totalProjects
+      };
+    })
+    .sort((a, b) => b.totalProjects - a.totalProjects)
+    .slice(0, 15);
+  }, [orgs]);
+
   // Auto-align active modal year if org changes
   useEffect(() => {
     if (selectedOrg) {
@@ -201,69 +220,34 @@ export const GSoCPanel: React.FC<Props> = () => {
         </div>
       </div>
 
-      {/* 3. Filter Bar */}
-      <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-4 shadow-soft">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3.5 items-center">
-          
-          {/* Search bar (5 cols) */}
-          <div className="lg:col-span-5 relative">
-            <Search className="w-4 h-4 text-text-muted absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Search by name, technology, topic..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 border border-border-divider rounded-lg text-[13px] text-text-primary bg-bg-main dark:bg-[#1E293B] focus:outline-none focus:border-brand-primary"
-            />
-          </div>
-
-          {/* Year selector (2 cols) */}
-          <div className="lg:col-span-2">
-            <select
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(e.target.value)}
-              className="w-full px-3 py-2 border border-border-divider rounded-lg text-[13px] text-text-primary bg-bg-main dark:bg-[#1E293B] font-semibold focus:outline-none cursor-pointer"
-            >
-              <option value="All">All Years</option>
-              <option value="2025">2025</option>
-              <option value="2024">2024</option>
-            </select>
-          </div>
-
-          {/* Category selector (2.5 cols) */}
-          <div className="lg:col-span-2.5">
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full px-3 py-2 border border-border-divider rounded-lg text-[13px] text-text-primary bg-bg-main dark:bg-[#1E293B] font-semibold focus:outline-none cursor-pointer truncate"
-            >
-              <option value="All">All Categories</option>
-              {categoriesList.filter(c => c !== 'All').map(c => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Technology selector (2.5 cols) */}
-          <div className="lg:col-span-2.5">
-            <select
-              value={selectedTech}
-              onChange={(e) => setSelectedTech(e.target.value)}
-              className="w-full px-3 py-2 border border-border-divider rounded-lg text-[13px] text-text-primary bg-bg-main dark:bg-[#1E293B] font-semibold focus:outline-none cursor-pointer truncate"
-            >
-              <option value="All">All Technologies</option>
-              {technologiesList.filter(t => t !== 'All').map(t => (
-                <option key={t} value={t}>{t}</option>
-              ))}
-            </select>
-          </div>
-
-        </div>
+      {/* 2.5 Tab Selectors */}
+      <div className="flex border-b border-border-divider gap-4">
+        <button
+          onClick={() => setSubTab('browse')}
+          className={`pb-2.5 text-[14.5px] font-extrabold border-b-2 transition-all cursor-pointer ${
+            subTab === 'browse'
+              ? 'border-brand-primary text-brand-primary'
+              : 'border-transparent text-text-secondary hover:text-text-heading'
+          }`}
+        >
+          Browse Organizations
+        </button>
+        <button
+          onClick={() => setSubTab('leaderboard')}
+          className={`pb-2.5 text-[14.5px] font-extrabold border-b-2 transition-all cursor-pointer flex items-center gap-1.5 ${
+            subTab === 'leaderboard'
+              ? 'border-brand-primary text-brand-primary'
+              : 'border-transparent text-text-secondary hover:text-text-heading'
+          }`}
+        >
+          <Trophy className="w-4 h-4 text-amber-500 animate-pulse" />
+          Leaderboard (Top Orgs)
+        </button>
       </div>
 
-      {/* 4. Main Organizations Grid */}
+      {/* 3. Main content body based on SubTab */}
       {loading ? (
-        <div className="w-full py-16 flex flex-col items-center justify-center space-y-3">
+        <div className="w-full py-20 flex flex-col items-center justify-center space-y-3">
           <div className="w-8 h-8 border-4 border-brand-primary/30 border-t-brand-primary rounded-full animate-spin" />
           <p className="text-[12px] text-text-secondary font-medium">Scraping GSoC Archive data...</p>
         </div>
@@ -273,102 +257,251 @@ export const GSoCPanel: React.FC<Props> = () => {
           <h3 className="text-[14px] font-bold">Failed to load GSoC Archive</h3>
           <p className="text-[12px] text-text-secondary mt-1">{error}</p>
         </div>
-      ) : filteredOrgs.length === 0 ? (
-        <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-12 text-center text-text-secondary border-dashed w-full flex flex-col items-center justify-center min-h-[250px]">
-          <BookOpen className="w-8 h-8 text-text-muted mb-3" />
-          <h3 className="text-[14px] font-bold text-text-heading">No Organizations Found</h3>
-          <p className="text-[12px] text-text-muted mt-1">Try resetting your filters or search terms.</p>
+      ) : subTab === 'leaderboard' ? (
+        /* Leaderboard Table View */
+        <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] overflow-hidden shadow-soft animate-fadeIn">
+          <div className="p-5 border-b border-border-divider bg-slate-50/30 dark:bg-bg-secondary/10 flex items-center justify-between">
+            <div>
+              <h3 className="text-[15px] font-extrabold text-text-heading flex items-center gap-2">
+                <Trophy className="w-4 h-4 text-amber-500" />
+                GSoC All-Time Leaderboard
+              </h3>
+              <p className="text-[12px] text-text-secondary mt-0.5">Top 15 organizations ranked by total accepted projects across all years in the GSoC Archive.</p>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-border-divider bg-slate-50 dark:bg-bg-secondary/40 text-[11px] font-bold text-text-secondary uppercase tracking-wider">
+                  <th className="py-3 px-5 text-center w-16">Rank</th>
+                  <th className="py-3 px-5">Organization</th>
+                  <th className="py-3 px-5">Category</th>
+                  <th className="py-3 px-5">Tech Stack</th>
+                  <th className="py-3 px-5 text-center w-36">Total Projects</th>
+                  <th className="py-3 px-5 text-center w-28">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border-divider/50">
+                {leaderboard.map((org, index) => (
+                  <tr 
+                    key={org.name}
+                    className="hover:bg-slate-50/50 dark:hover:bg-[#1E293B]/20 transition-colors text-[13px] text-text-primary group"
+                  >
+                    <td className="py-4 px-5 text-center font-extrabold text-text-secondary">
+                      {index === 0 ? '🏆 1' : index === 1 ? '🥈 2' : index === 2 ? '🥉 3' : `${index + 1}`}
+                    </td>
+                    <td className="py-4 px-5 font-bold text-text-heading">
+                      <div className="flex items-center gap-3">
+                        <div 
+                          className="w-8 h-8 rounded border border-border-card p-1 flex items-center justify-center bg-white flex-shrink-0"
+                          style={{ backgroundColor: org.image_background_color }}
+                        >
+                          {org.image_url ? (
+                            <img 
+                              src={org.image_url} 
+                              alt={org.name} 
+                              className="w-full h-full object-contain"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                                e.currentTarget.parentElement!.innerHTML = `<span class="text-[9px] font-extrabold text-text-muted">${org.name.substring(0, 2).toUpperCase()}</span>`;
+                              }}
+                            />
+                          ) : (
+                            <span className="text-[9px] font-extrabold text-text-muted">{org.name.substring(0, 2).toUpperCase()}</span>
+                          )}
+                        </div>
+                        <span className="truncate max-w-[200px]" title={org.name}>{org.name}</span>
+                      </div>
+                    </td>
+                    <td className="py-4 px-5 text-text-secondary text-[12.5px]">
+                      {org.category}
+                    </td>
+                    <td className="py-4 px-5">
+                      <div className="flex flex-wrap gap-1 max-w-[280px]">
+                        {org.technologies.slice(0, 3).map(tech => (
+                          <span 
+                            key={tech} 
+                            className="text-[10px] font-medium bg-brand-primary/5 text-brand-primary dark:bg-brand-primary/10 border border-brand-primary/10 px-1.5 py-0.5 rounded"
+                          >
+                            {tech}
+                          </span>
+                        ))}
+                        {org.technologies.length > 3 && (
+                          <span className="text-[9px] font-semibold text-text-muted px-1 py-0.5">
+                            +{org.technologies.length - 3} more
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="py-4 px-5 text-center font-extrabold text-brand-primary">
+                      {org.totalProjects}
+                    </td>
+                    <td className="py-4 px-5 text-center">
+                      <button
+                        onClick={() => setSelectedOrg(org)}
+                        className="inline-flex items-center gap-1 text-[11px] font-bold text-brand-primary hover:text-brand-primary-hover cursor-pointer"
+                      >
+                        View Projects
+                        <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-          {filteredOrgs.map((org) => {
-            const activeYears = Object.keys(org.years);
-            return (
-              <div 
-                key={org.name}
-                className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-5 shadow-soft hover:shadow-hover-card transition-shadow duration-200 flex flex-col justify-between"
-              >
-                <div className="space-y-3.5">
-                  {/* Card Header: Logo & Name */}
-                  <div className="flex items-start gap-3">
-                    <div 
-                      className="w-12 h-12 rounded-lg border border-border-card p-1.5 flex items-center justify-center flex-shrink-0"
-                      style={{ backgroundColor: org.image_background_color }}
-                    >
-                      {org.image_url ? (
-                        <img 
-                          src={org.image_url} 
-                          alt={org.name} 
-                          className="w-full h-full object-contain"
-                          onError={(e) => {
-                            // Fallback if logo fails
-                            e.currentTarget.style.display = 'none';
-                            e.currentTarget.parentElement!.innerHTML = `<span class="text-xs font-bold text-text-muted">${org.name.substring(0, 2).toUpperCase()}</span>`;
-                          }}
-                        />
-                      ) : (
-                        <span className="text-[11px] font-bold text-text-muted">{org.name.substring(0, 2).toUpperCase()}</span>
-                      )}
-                    </div>
-                    <div className="space-y-1 truncate">
-                      <h3 className="text-[14px] font-bold text-text-heading truncate" title={org.name}>
-                        {org.name}
-                      </h3>
-                      <span className="inline-block text-[10px] font-semibold bg-slate-100 dark:bg-[#1E293B] text-text-secondary px-1.5 py-0.5 rounded">
-                        {org.category}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Description */}
-                  <p className="text-[12px] text-text-secondary line-clamp-3 leading-relaxed">
-                    {org.description}
-                  </p>
-
-                  {/* Tech stack tags */}
-                  <div className="flex flex-wrap gap-1.5">
-                    {org.technologies.slice(0, 5).map(tech => (
-                      <span 
-                        key={tech} 
-                        className="text-[10px] font-medium bg-brand-primary/5 text-brand-primary dark:bg-brand-primary/10 border border-brand-primary/10 px-1.5 py-0.5 rounded-md"
-                      >
-                        {tech}
-                      </span>
-                    ))}
-                    {org.technologies.length > 5 && (
-                      <span className="text-[9px] font-semibold text-text-muted px-1 py-0.5">
-                        +{org.technologies.length - 5} more
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Card Footer: Year Badges & Details Action */}
-                <div className="mt-5 pt-3.5 border-t border-border-divider/50 flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-1.5">
-                    {activeYears.map(year => (
-                      <span 
-                        key={year} 
-                        className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-brand-purple/10 text-brand-purple flex items-center gap-1"
-                      >
-                        <Calendar className="w-2.5 h-2.5" />
-                        {year} ({org.years[year]?.num_projects || 0})
-                      </span>
-                    ))}
-                  </div>
-
-                  <button
-                    onClick={() => setSelectedOrg(org)}
-                    className="inline-flex items-center gap-1 text-[11px] font-bold text-brand-primary hover:text-brand-primary-hover cursor-pointer"
-                  >
-                    View Projects
-                    <ExternalLink className="w-3 h-3" />
-                  </button>
-                </div>
-
+        /* Browse Grid View */
+        <div className="space-y-6 animate-fadeIn">
+          {/* 3. Filter Bar */}
+          <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-4 shadow-soft">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3.5 items-center">
+              <div className="lg:col-span-5 relative">
+                <Search className="w-4 h-4 text-text-muted absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Search by name, technology, topic..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 border border-border-divider rounded-lg text-[13px] text-text-primary bg-bg-main dark:bg-[#1E293B] focus:outline-none focus:border-brand-primary"
+                />
               </div>
-            );
-          })}
+
+              <div className="lg:col-span-2">
+                <select
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(e.target.value)}
+                  className="w-full px-3 py-2 border border-border-divider rounded-lg text-[13px] text-text-primary bg-bg-main dark:bg-[#1E293B] font-semibold focus:outline-none cursor-pointer"
+                >
+                  <option value="All">All Years</option>
+                  <option value="2025">2025</option>
+                  <option value="2024">2024</option>
+                </select>
+              </div>
+
+              <div className="lg:col-span-2.5">
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="w-full px-3 py-2 border border-border-divider rounded-lg text-[13px] text-text-primary bg-bg-main dark:bg-[#1E293B] font-semibold focus:outline-none cursor-pointer truncate"
+                >
+                  <option value="All">All Categories</option>
+                  {categoriesList.filter(c => c !== 'All').map(c => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="lg:col-span-2.5">
+                <select
+                  value={selectedTech}
+                  onChange={(e) => setSelectedTech(e.target.value)}
+                  className="w-full px-3 py-2 border border-border-divider rounded-lg text-[13px] text-text-primary bg-bg-main dark:bg-[#1E293B] font-semibold focus:outline-none cursor-pointer truncate"
+                >
+                  <option value="All">All Technologies</option>
+                  {technologiesList.filter(t => t !== 'All').map(t => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Grid Render */}
+          {filteredOrgs.length === 0 ? (
+            <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-12 text-center text-text-secondary border-dashed w-full flex flex-col items-center justify-center min-h-[250px]">
+              <BookOpen className="w-8 h-8 text-text-muted mb-3" />
+              <h3 className="text-[14px] font-bold text-text-heading">No Organizations Found</h3>
+              <p className="text-[12px] text-text-muted mt-1">Try resetting your filters or search terms.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+              {filteredOrgs.map((org) => {
+                const activeYears = Object.keys(org.years);
+                return (
+                  <div 
+                    key={org.name}
+                    className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-5 shadow-soft hover:shadow-hover-card transition-shadow duration-200 flex flex-col justify-between"
+                  >
+                    <div className="space-y-3.5">
+                      <div className="flex items-start gap-3">
+                        <div 
+                          className="w-12 h-12 rounded-lg border border-border-card p-1.5 flex items-center justify-center flex-shrink-0"
+                          style={{ backgroundColor: org.image_background_color }}
+                        >
+                          {org.image_url ? (
+                            <img 
+                              src={org.image_url} 
+                              alt={org.name} 
+                              className="w-full h-full object-contain"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                                e.currentTarget.parentElement!.innerHTML = `<span class="text-xs font-bold text-text-muted">${org.name.substring(0, 2).toUpperCase()}</span>`;
+                              }}
+                            />
+                          ) : (
+                            <span className="text-[11px] font-bold text-text-muted">{org.name.substring(0, 2).toUpperCase()}</span>
+                          )}
+                        </div>
+                        <div className="space-y-1 truncate">
+                          <h3 className="text-[14px] font-bold text-text-heading truncate" title={org.name}>
+                            {org.name}
+                          </h3>
+                          <span className="inline-block text-[10px] font-semibold bg-slate-100 dark:bg-[#1E293B] text-text-secondary px-1.5 py-0.5 rounded">
+                            {org.category}
+                          </span>
+                        </div>
+                      </div>
+
+                      <p className="text-[12px] text-text-secondary line-clamp-3 leading-relaxed">
+                        {org.description}
+                      </p>
+
+                      <div className="flex flex-wrap gap-1.5">
+                        {org.technologies.slice(0, 5).map(tech => (
+                          <span 
+                            key={tech} 
+                            className="text-[10px] font-medium bg-brand-primary/5 text-brand-primary dark:bg-brand-primary/10 border border-brand-primary/10 px-1.5 py-0.5 rounded-md"
+                          >
+                            {tech}
+                          </span>
+                        ))}
+                        {org.technologies.length > 5 && (
+                          <span className="text-[9px] font-semibold text-text-muted px-1 py-0.5">
+                            +{org.technologies.length - 5} more
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="mt-5 pt-3.5 border-t border-border-divider/50 flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5">
+                        {activeYears.map(year => (
+                          <span 
+                            key={year} 
+                            className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-brand-purple/10 text-brand-purple flex items-center gap-1"
+                          >
+                            <Calendar className="w-2.5 h-2.5" />
+                            {year} ({org.years[year]?.num_projects || 0})
+                          </span>
+                        ))}
+                      </div>
+
+                      <button
+                        onClick={() => setSelectedOrg(org)}
+                        className="inline-flex items-center gap-1 text-[11px] font-bold text-brand-primary hover:text-brand-primary-hover cursor-pointer"
+                      >
+                        View Projects
+                        <ExternalLink className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 

@@ -366,6 +366,12 @@ export default function LandingPage() {
       const repoParam = params.get('repo');
       const tabParam = params.get('tab') as TabType;
 
+      if (params.has('auth_success')) {
+        params.delete('auth_success');
+        const newSearch = params.toString() ? `?${params.toString()}` : '';
+        window.history.replaceState(window.history.state, '', window.location.pathname + newSearch);
+      }
+
       if (repoParam) {
         const parts = repoParam.split('/');
         if (parts.length === 2) {
