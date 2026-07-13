@@ -147,7 +147,7 @@ export const GSoCPanel: React.FC<Props> = ({ onAnalyzeRepo }) => {
 
       return matchesSearch && matchesYear && matchesCategory && matchesTech;
     });
-  }, [orgs, searchQuery, selectedYear, selectedCategory, ...[selectedTech]]); // using array wrapper for eslint compat if needed
+  }, [orgs, searchQuery, selectedYear, selectedCategory, selectedTech]);
 
   // Calculate statistics for metrics row
   const stats = useMemo(() => {

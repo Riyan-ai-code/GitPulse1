@@ -115,6 +115,16 @@ const formatDateForPrint = (dateStr: string | null) => {
   return `${day} ${month} ${year}`;
 };
 
+const EmptyStateWorkspace = () => (
+  <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-12 text-center text-text-secondary border-dashed animate-fadeIn">
+    <Activity className="w-10 h-10 text-brand-primary mx-auto mb-2.5 animate-pulse" />
+    <h3 className="text-[15px] font-bold text-text-heading">No Repository Analyzed Yet</h3>
+    <p className="text-[12px] text-text-muted mt-1 max-w-xs mx-auto">
+      Enter a GitHub repository path in the search bar above to inspect its analytics.
+    </p>
+  </div>
+);
+
 export default function Dashboard() {
   const [analyzedRepo, setAnalyzedRepo] = useState<{ owner: string; repo: string } | null>(null);
   const [inputValue, setInputValue] = useState('');
@@ -438,16 +448,6 @@ export default function Dashboard() {
     shouldSkipHistoryRef.current = !currentUser;
     setAnalyzedRepo(parsed);
   };
-
-  const EmptyStateWorkspace = () => (
-    <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-12 text-center text-text-secondary border-dashed animate-fadeIn">
-      <Activity className="w-10 h-10 text-brand-primary mx-auto mb-2.5 animate-pulse" />
-      <h3 className="text-[15px] font-bold text-text-heading">No Repository Analyzed Yet</h3>
-      <p className="text-[12px] text-text-muted mt-1 max-w-xs mx-auto">
-        Enter a GitHub repository path in the search bar above to inspect its analytics.
-      </p>
-    </div>
-  );
 
   const getHealthBadgeStyles = (score: number) => {
     if (score >= 90) return 'text-brand-emerald bg-emerald-50 dark:bg-emerald-950/20';
