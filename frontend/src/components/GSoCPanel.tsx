@@ -10,20 +10,62 @@ import {
   Sparkles, 
   GraduationCap, 
   BookOpen, 
-  Trophy 
+  Trophy
 } from 'lucide-react';
 import { API_BASE_URL } from '../lib/api';
 import { GSoCOrganization, GSoCProject } from '../types';
 
+const GithubIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+  </svg>
+);
+
 interface Props {
-  // no custom repository props needed since this is a global archive explorer
+  onAnalyzeRepo?: (owner: string, repo: string) => void;
 }
 
-export const GSoCPanel: React.FC<Props> = () => {
+export const GSoCPanel: React.FC<Props> = ({ onAnalyzeRepo }) => {
   const [orgs, setOrgs] = useState<GSoCOrganization[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   
+  // Helper to infer the GitHub organization URL from projects' code_url
+  const getInferredGithub = (org: GSoCOrganization) => {
+    if (!org) return null;
+    const githubOrgs = new Map<string, number>();
+    
+    Object.values(org.years).forEach(yearInfo => {
+      if (yearInfo.projects) {
+        yearInfo.projects.forEach(proj => {
+          if (proj.code_url) {
+            const match = proj.code_url.match(/github\.com\/([^\/]+)/i);
+            if (match && match[1]) {
+              const orgName = match[1].toLowerCase();
+              githubOrgs.set(orgName, (githubOrgs.get(orgName) || 0) + 1);
+            }
+          }
+        });
+      }
+    });
+    
+    if (githubOrgs.size === 0) return null;
+    
+    let topOrg = '';
+    let maxCount = 0;
+    githubOrgs.forEach((count, o) => {
+      if (count > maxCount) {
+        maxCount = count;
+        topOrg = o;
+      }
+    });
+    
+    return topOrg ? {
+      username: topOrg,
+      url: `https://github.com/${topOrg}`
+    } : null;
+  };
+
   // Search & Filter state
   const [subTab, setSubTab] = useState<'browse' | 'leaderboard'>('browse');
   const [searchQuery, setSearchQuery] = useState('');
@@ -450,9 +492,26 @@ export const GSoCPanel: React.FC<Props> = () => {
                           <h3 className="text-[14px] font-bold text-text-heading truncate" title={org.name}>
                             {org.name}
                           </h3>
-                          <span className="inline-block text-[10px] font-semibold bg-slate-100 dark:bg-[#1E293B] text-text-secondary px-1.5 py-0.5 rounded">
-                            {org.category}
-                          </span>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="inline-block text-[10px] font-semibold bg-slate-100 dark:bg-[#1E293B] text-text-secondary px-1.5 py-0.5 rounded">
+                              {org.category}
+                            </span>
+                            {(() => {
+                              const github = getInferredGithub(org);
+                              return github ? (
+                                <a
+                                  href={github.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-0.5 text-[10px] text-text-secondary hover:text-brand-primary font-medium"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <GithubIcon className="w-3 h-3" />
+                                  @{github.username}
+                                </a>
+                              ) : null;
+                            })()}
+                          </div>
                         </div>
                       </div>
 
@@ -528,7 +587,7 @@ export const GSoCPanel: React.FC<Props> = () => {
                   <h3 className="text-[16px] font-extrabold text-text-heading flex items-center gap-2">
                     {selectedOrg.name}
                   </h3>
-                  <div className="flex flex-wrap items-center gap-1.5">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span className="text-[10px] font-semibold bg-slate-100 dark:bg-[#1E293B] text-text-secondary px-2 py-0.5 rounded">
                       {selectedOrg.category}
                     </span>
@@ -536,11 +595,41 @@ export const GSoCPanel: React.FC<Props> = () => {
                       href={selectedOrg.url} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="text-[10px] text-brand-primary hover:underline flex items-center gap-0.5"
+                      className="text-[10px] text-brand-primary hover:underline flex items-center gap-0.5 font-medium"
                     >
                       <Globe className="w-3 h-3" />
                       Website
                     </a>
+                    {(() => {
+                      const github = getInferredGithub(selectedOrg);
+                      if (github) {
+                        return (
+                          <a 
+                            href={github.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-[10px] text-text-secondary hover:text-brand-primary flex items-center gap-0.5 font-medium border-l border-border-divider/50 pl-2"
+                          >
+                            <GithubIcon className="w-3 h-3" />
+                            GitHub: @{github.username}
+                          </a>
+                        );
+                      } else {
+                        const searchName = selectedOrg.name.replace(/GmbH|Inc\.|Co\./gi, '').trim();
+                        return (
+                          <a 
+                            href={`https://github.com/search?q=${encodeURIComponent(searchName)}&type=organizations`} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-[10px] text-text-secondary hover:text-brand-primary flex items-center gap-0.5 font-medium border-l border-border-divider/50 pl-2"
+                            title="Search GitHub for this organization's profile"
+                          >
+                            <GithubIcon className="w-3 h-3" />
+                            Search Org on GitHub
+                          </a>
+                        );
+                      }
+                    })()}
                   </div>
                 </div>
               </div>
@@ -626,17 +715,61 @@ export const GSoCPanel: React.FC<Props> = () => {
                               Proposed by <span className="font-bold text-text-heading">{proj.student_name}</span>
                             </p>
                           </div>
-                          {proj.code_url && (
-                            <a 
-                              href={proj.code_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-[10px] font-bold text-brand-primary hover:underline flex items-center gap-0.5 flex-shrink-0"
-                            >
-                              Code Repository
-                              <ExternalLink className="w-2.5 h-2.5" />
-                            </a>
-                          )}
+                          {proj.code_url && (() => {
+                            const match = proj.code_url.match(/github\.com\/([^\/]+)\/([^\/#\?]+)/i);
+                            if (match && match[1] && match[2]) {
+                              const owner = match[1];
+                              let repo = match[2];
+                              if (repo.endsWith('.git')) repo = repo.slice(0, -4);
+                              return (
+                                <div className="flex items-center gap-3 flex-shrink-0">
+                                  <a 
+                                    href={proj.code_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-[10px] font-bold text-text-secondary hover:underline flex items-center gap-0.5"
+                                  >
+                                    Code Repository
+                                    <ExternalLink className="w-2.5 h-2.5" />
+                                  </a>
+                                  {onAnalyzeRepo && (
+                                    <button
+                                      onClick={() => {
+                                        setSelectedOrg(null); // Close modal
+                                        onAnalyzeRepo(owner, repo);
+                                      }}
+                                      className="text-[10px] font-bold text-brand-primary hover:underline flex items-center gap-0.5 cursor-pointer border-l border-border-divider/50 pl-2.5"
+                                      title="Analyze this repository in GitPulse"
+                                    >
+                                      ⚡ Analyze in GitPulse
+                                    </button>
+                                  )}
+                                </div>
+                              );
+                            }
+                            return (
+                              <div className="flex items-center gap-3 flex-shrink-0">
+                                <a 
+                                  href={proj.code_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[10px] font-bold text-text-secondary hover:underline flex items-center gap-0.5"
+                                >
+                                  Blog/Wiki Link
+                                  <ExternalLink className="w-2.5 h-2.5" />
+                                </a>
+                                <a 
+                                  href={`https://github.com/search?q=${encodeURIComponent(proj.title)}&type=repositories`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[10px] font-bold text-brand-primary hover:underline flex items-center gap-0.5 border-l border-border-divider/50 pl-2.5"
+                                  title="Search GitHub for repositories matching this project"
+                                >
+                                  🔍 Search Repositories
+                                </a>
+                              </div>
+                            );
+                          })()}
                         </div>
 
                         <div 

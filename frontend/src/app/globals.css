@@ -37,58 +37,119 @@
   --brand-primary-hover: #1D4ED8;
   --brand-primary-light: #DBEAFE;
   
-  --brand-cyan: #06B6D4;
-  --brand-emerald: #10B981;
-  --brand-amber: #F59E0B;
-  --brand-red: #EF4444;
+  --brand-cyan: #0891B2;
+  --brand-emerald: #16A34A;
+  --brand-amber: #D97706;
+  --brand-red: #DC2626;
   --brand-purple: #8B5CF6;
   
   --bg-main: #F8FAFC;
   --bg-card: #FFFFFF;
   --bg-sidebar: #FFFFFF;
-  --bg-secondary: #F1F5F9;
-  --bg-hover: #F8FAFC;
+  --bg-secondary: #FFFFFF;
+  --bg-hover: #F1F5F9;
   
   --text-heading: #0F172A;
-  --text-primary: #1E293B;
+  --text-primary: #0F172A;
   --text-secondary: #64748B;
-  --text-muted: #94A3B8;
+  --text-muted: #64748B;
   
   --border-card: #E2E8F0;
-  --border-divider: #CBD5E1;
+  --border-divider: #E2E8F0;
 }
 
 .dark {
-  /* Dark Theme Variables matching the dashboard image */
+  /* Dark Theme Variables */
   --brand-primary: #3B82F6;
   --brand-primary-hover: #2563EB;
   --brand-primary-light: #1E3A8A;
   
   --brand-cyan: #06B6D4;
-  --brand-emerald: #10B981;
+  --brand-emerald: #22C55E;
   --brand-amber: #F59E0B;
   --brand-red: #EF4444;
   --brand-purple: #8B5CF6;
   
-  --bg-main: #0B0F19;         /* Dark Slate Blue */
-  --bg-card: #111827;         /* Gray-900 */
-  --bg-sidebar: #090D16;      /* Deeper Slate Blue for Sidebar */
-  --bg-secondary: #1F2937;    /* Gray-800 */
+  --bg-main: #0B1220;
+  --bg-card: #1E293B;
+  --bg-sidebar: #111827;
+  --bg-secondary: #111827;
   --bg-hover: #1F2937;
   
-  --text-heading: #F3F4F6;    /* Gray-100 */
-  --text-primary: #E5E7EB;    /* Gray-200 */
-  --text-secondary: #9CA3AF;  /* Gray-400 */
-  --text-muted: #4B5563;      /* Gray-600 */
+  --text-heading: #F8FAFC;
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-muted: #94A3B8;
   
-  --border-card: #1F2937;     /* Gray-800 borders */
-  --border-divider: #374151;  /* Gray-700 divider */
+  --border-card: #334155;
+  --border-divider: #334155;
+}
+
+/* Common Brand Gradients (consistent across both light and dark modes) */
+.bg-gradient-to-br.from-brand-primary.to-indigo-500,
+.bg-gradient-to-br.from-brand-primary.to-purple-500 {
+  background-image: linear-gradient(135deg, #3B82F6 0%, #06B6D4 100%) !important;
+}
+
+.bg-gradient-to-r.from-brand-primary\/5.to-indigo-500\/5,
+.bg-gradient-to-r.from-brand-primary\/10.via-purple-500\/5.to-indigo-500\/10,
+.bg-gradient-to-br.from-indigo-50\/50.to-brand-primary-light\/30 {
+  background-image: linear-gradient(135deg, rgba(59, 130, 246, 0.06) 0%, rgba(6, 182, 212, 0.06) 100%) !important;
+}
+
+.dark .bg-gradient-to-r.dark\:from-brand-primary\/10.dark\:to-indigo-950\/20,
+.dark .bg-gradient-to-br.dark\:from-indigo-950\/20.dark\:to-brand-primary\/10 {
+  background-image: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(6, 182, 212, 0.12) 100%) !important;
 }
 
 body {
   background-color: var(--bg-main);
   color: var(--text-primary);
   transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Landing Page Light Mode Overrides (for hardcoded dark classes) */
+html:not(.dark) .bg-\[\#0B0F19\] {
+  background-color: var(--bg-main) !important;
+  color: var(--text-primary) !important;
+}
+
+html:not(.dark) .bg-\[\#0B0F19\] h1,
+html:not(.dark) .bg-\[\#0B0F19\] h2,
+html:not(.dark) .bg-\[\#0B0F19\] h3,
+html:not(.dark) .bg-\[\#0B0F19\] span.text-white,
+html:not(.dark) .bg-\[\#0B0F19\] .text-slate-100 {
+  color: var(--text-heading) !important;
+}
+
+html:not(.dark) .bg-\[\#0B0F19\] p,
+html:not(.dark) .bg-\[\#0B0F19\] .text-\[\#9CA3AF\],
+html:not(.dark) .bg-\[\#0B0F19\] .text-slate-400 {
+  color: var(--text-secondary) !important;
+}
+
+html:not(.dark) .bg-\[\#0B0F19\] .bg-slate-900\/50 {
+  background-color: var(--bg-card) !important;
+  border-color: var(--border-card) !important;
+}
+
+html:not(.dark) .bg-\[\#0B0F19\] .bg-slate-900\/60 {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--border-card) !important;
+  color: var(--text-heading) !important;
+}
+html:not(.dark) .bg-\[\#0B0F19\] .bg-slate-900\/60:hover {
+  background-color: var(--bg-hover) !important;
+}
+
+html:not(.dark) .bg-\[\#0B0F19\] .bg-\[\#24292F\] {
+  background-color: var(--text-heading) !important;
+  color: #ffffff !important;
+}
+
+html:not(.dark) .bg-\[\#0B0F19\] .border-slate-800,
+html:not(.dark) .bg-\[\#0B0F19\] .border-slate-800\/80 {
+  border-color: var(--border-card) !important;
 }
 
 /* Custom Scrollbars */

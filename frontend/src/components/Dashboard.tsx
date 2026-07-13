@@ -489,6 +489,18 @@ export default function Dashboard() {
             <span className="font-bold text-[16px] text-white tracking-tight">GitPulse</span>
           </div>
           <div className="flex items-center gap-3">
+            {/* Theme Toggle Button */}
+            <button
+              onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+              className="p-2 border border-slate-800 hover:border-slate-600 rounded-lg bg-slate-900/60 hover:bg-slate-950 text-white transition-all cursor-pointer shadow-sm flex items-center justify-center"
+              title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
+            >
+              {theme === 'light' ? (
+                <Moon className="w-4 h-4" />
+              ) : (
+                <Sun className="w-4 h-4" />
+              )}
+            </button>
             <a
               href={`${API_BASE_URL}/auth/github`}
               className="inline-flex items-center gap-1.5 px-4 py-2 border border-slate-800 hover:border-slate-600 rounded-lg bg-[#24292F] hover:bg-[#24292F]/80 text-[13px] font-bold text-white transition-all cursor-pointer shadow-sm"
@@ -1261,7 +1273,12 @@ export default function Dashboard() {
 
               {activeTab === 'gsoc' && (
                 <div className="w-full animate-fadeIn">
-                  <GSoCPanel />
+                  <GSoCPanel onAnalyzeRepo={(owner, repo) => {
+                    shouldSkipHistoryRef.current = false;
+                    setAnalyzedRepo({ owner, repo });
+                    setInputValue(`${owner}/${repo}`);
+                    setActiveTab('overview');
+                  }} />
                 </div>
               )}
   
