@@ -10,8 +10,10 @@ import errorHandler from './shared/middleware/errorHandler.js';
 
 const app = express();
 
+const frontEndOrigin = process.env.FRONTEND_URL || 'http://localhost:3000';
+
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: frontEndOrigin,
   credentials: true
 }));
 app.use(express.json());

@@ -12,6 +12,7 @@ import {
   BookOpen, 
   Trophy 
 } from 'lucide-react';
+import { API_BASE_URL } from '../lib/api';
 import { GSoCOrganization, GSoCProject } from '../types';
 
 interface Props {
@@ -39,7 +40,7 @@ export const GSoCPanel: React.FC<Props> = () => {
     const loadGSoCData = async () => {
       try {
         setLoading(true);
-        const res = await fetch('http://localhost:5000/api/gsoc', {
+        const res = await fetch(`${API_BASE_URL}/gsoc`, {
           credentials: 'include'
         });
         if (!res.ok) {

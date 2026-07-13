@@ -1,6 +1,6 @@
 import { RepositoryOverview, CommitStats, ContributorsList, RepositoryAnalysis } from '../types';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api';
 
 const handleResponse = async (response: Response) => {
   if (!response.ok) {
@@ -15,6 +15,8 @@ const handleResponse = async (response: Response) => {
   }
   return response.json();
 };
+
+export { API_BASE_URL };
 
 export const fetchRepositoryOverview = async (owner: string, repo: string): Promise<RepositoryOverview> => {
   const response = await fetch(`${API_BASE_URL}/repository?owner=${encodeURIComponent(owner)}&repo=${encodeURIComponent(repo)}`, {
@@ -69,6 +71,35 @@ export const deleteRepoAnalysis = async (owner: string, repo: string): Promise<a
 
 export const fetchCodebaseComposition = async (owner: string, repo: string): Promise<any> => {
   const response = await fetch(`${API_BASE_URL}/repository/composition?owner=${encodeURIComponent(owner)}&repo=${encodeURIComponent(repo)}`, {
+    credentials: 'include'
+  });
+  return handleResponse(response);
+};
+
+export const fetchHistory = async (): Promise<any> => {
+  const response = await fetch(`${API_BASE_URL}/repository/history`, {
+    credentials: 'include'
+  });
+  return handleResponse(response);
+};
+
+export const fetchAuthStatus = async (): Promise<any> => {
+  const response = await fetch(`${API_BASE_URL}/auth/user`, {
+    credentials: 'include'
+  });
+  return handleResponse(response);
+};
+
+export const logout = async (): Promise<any> => {
+  const response = await fetch(`${API_BASE_URL}/auth/logout`, {
+    method: 'POST',
+    credentials: 'include'
+  });
+  return handleResponse(response);
+};
+
+export const fetchGSoC = async (): Promise<any> => {
+  const response = await fetch(`${API_BASE_URL}/gsoc`, {
     credentials: 'include'
   });
   return handleResponse(response);
