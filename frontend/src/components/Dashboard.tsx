@@ -600,19 +600,19 @@ export default function Dashboard() {
               {exampleRepos.map((repo) => (
                 <div
                   key={repo.name}
-                  className="bg-white border border-[#E2E8F0] rounded-[12px] p-5 shadow-sm text-left flex flex-col justify-between h-44"
+                  className="bg-slate-900/50 border border-slate-800/80 rounded-[12px] p-5 shadow-sm text-left flex flex-col justify-between h-44 hover:border-slate-700/80 transition-all"
                 >
                   <div>
-                    <h3 className="text-[14px] font-bold text-slate-800">
+                    <h3 className="text-[14px] font-bold text-slate-100">
                       {repo.name}
                     </h3>
-                    <p className="text-[12px] text-slate-500 mt-2 line-clamp-4 font-normal leading-relaxed">
+                    <p className="text-[12px] text-slate-400 mt-2 line-clamp-4 font-normal leading-relaxed">
                       {repo.desc}
                     </p>
                   </div>
                   <button
                     onClick={() => handleExampleSelect(repo.owner, repo.repo)}
-                    className="mt-3 inline-flex items-center gap-1 text-[12px] font-bold text-blue-600 hover:text-blue-700 cursor-pointer"
+                    className="mt-3 inline-flex items-center gap-1 text-[12px] font-bold text-[#60A5FA] hover:text-[#93C5FD] cursor-pointer"
                   >
                     Analyze Repo
                     <ArrowRight className="w-3.5 h-3.5" />
