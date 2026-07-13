@@ -166,7 +166,18 @@ export const PrsIssuesPanel: React.FC<Props> = ({ owner, repo }) => {
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => `${value} PRs`} />
+                  <Tooltip 
+                    contentStyle={{
+                      backgroundColor: 'var(--color-bg-card)',
+                      border: '1px solid var(--color-border-card)',
+                      borderRadius: '8px',
+                      boxShadow: '0 1px 2px rgba(15, 23, 42, 0.05)',
+                      color: 'var(--color-text-primary)'
+                    }}
+                    labelStyle={{ color: 'var(--text-heading)' }}
+                    itemStyle={{ color: 'var(--text-primary)' }}
+                    formatter={(value) => `${value} PRs`} 
+                  />
                 </PieChart>
               </ResponsiveContainer>
               <div className="w-1/2 space-y-2 pl-4">
@@ -203,7 +214,18 @@ export const PrsIssuesPanel: React.FC<Props> = ({ owner, repo }) => {
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => `${value} tickets`} />
+                  <Tooltip 
+                    contentStyle={{
+                      backgroundColor: 'var(--color-bg-card)',
+                      border: '1px solid var(--color-border-card)',
+                      borderRadius: '8px',
+                      boxShadow: '0 1px 2px rgba(15, 23, 42, 0.05)',
+                      color: 'var(--color-text-primary)'
+                    }}
+                    labelStyle={{ color: 'var(--text-heading)' }}
+                    itemStyle={{ color: 'var(--text-primary)' }}
+                    formatter={(value) => `${value} tickets`} 
+                  />
                 </PieChart>
               </ResponsiveContainer>
               <div className="w-1/2 space-y-2 pl-4">

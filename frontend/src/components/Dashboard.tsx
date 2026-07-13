@@ -130,6 +130,7 @@ export default function Dashboard() {
 
   // Load audit history
   const loadHistoryList = async () => {
+    if (!currentUser) return;
     try {
       const data = await fetchHistory();
       setHistoryList(data);
@@ -202,13 +203,21 @@ export default function Dashboard() {
   const [loadingAnalysis, setLoadingAnalysis] = useState(true);
   const [loadingComposition, setLoadingComposition] = useState(true);
 
-  // Sync theme
+  // Initialize theme from document element class on mount
+  useEffect(() => {
+    const isDark = document.documentElement.classList.contains('dark');
+    setTheme(isDark ? 'dark' : 'light');
+  }, []);
+
+  // Sync theme to document class and localStorage
   useEffect(() => {
     const root = document.documentElement;
     if (theme === 'dark') {
       root.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
     } else {
       root.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
     }
   }, [theme]);
 
@@ -306,9 +315,15 @@ export default function Dashboard() {
       setLoadingContributors(false);
       setLoadingAnalysis(false);
       setLoadingComposition(false);
-      loadHistoryList();
     }
   }, [analyzedRepo]);
+
+  // Load history list when user logs in and we are on the landing page
+  useEffect(() => {
+    if (currentUser && !analyzedRepo) {
+      loadHistoryList();
+    }
+  }, [currentUser, analyzedRepo]);
 
   // Push state to browser URL search parameters when analyzedRepo or activeTab changes
   useEffect(() => {

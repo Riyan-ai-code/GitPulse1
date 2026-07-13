@@ -54,13 +54,13 @@ export const LanguageChart: React.FC<Props> = ({ languages }) => {
   const chartData = processData();
 
   return (
-    <div className="bg-white border border-border-card rounded-[12px] p-6 shadow-soft hover:shadow-hover-card transition-shadow duration-200 flex flex-col h-full">
+    <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-6 shadow-soft hover:shadow-hover-card transition-shadow duration-200 flex flex-col h-full">
       <div className="flex items-center justify-between mb-4 pb-2 border-b border-border-divider">
         <div>
           <h3 className="text-[16px] font-semibold text-text-heading">Language Analysis</h3>
           <p className="text-[12px] text-text-secondary">Codebase distribution by language</p>
         </div>
-        <div className="p-2 rounded-lg bg-blue-50 text-brand-primary">
+        <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-brand-primary">
           <Code2 className="w-5 h-5" />
         </div>
       </div>
@@ -78,11 +78,13 @@ export const LanguageChart: React.FC<Props> = ({ languages }) => {
               <PieChart>
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#FFFFFF',
-                    border: '1px solid #E2E8F0',
+                    backgroundColor: 'var(--color-bg-card)',
+                    border: '1px solid var(--color-border-card)',
                     borderRadius: '8px',
-                    boxShadow: '0 1px 2px rgba(15, 23, 42, 0.05)'
+                    boxShadow: '0 1px 2px rgba(15, 23, 42, 0.05)',
                   }}
+                  labelStyle={{ color: 'var(--text-heading)' }}
+                  itemStyle={{ color: 'var(--text-primary)' }}
                   formatter={(value: any) => [`${value}%`, 'Percentage']}
                 />
                 <Pie
