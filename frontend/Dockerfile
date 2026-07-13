@@ -1,5 +1,5 @@
 # Stage 1: Build Next.js application
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 WORKDIR /app
 ARG NEXT_PUBLIC_API_BASE_URL
 ARG NEXT_PUBLIC_SUPABASE_URL
@@ -15,7 +15,7 @@ ENV NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}
 RUN npm run build
 
 # Stage 2: Create production runner image
-FROM node:20-alpine AS runner
+FROM node:22-alpine AS runner
 WORKDIR /app
 ARG NEXT_PUBLIC_API_BASE_URL
 ARG NEXT_PUBLIC_SUPABASE_URL
