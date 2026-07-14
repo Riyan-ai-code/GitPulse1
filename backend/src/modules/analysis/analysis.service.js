@@ -96,6 +96,10 @@ export const analyzeRepository = async (owner, repo, { skipHistory = false } = {
     healthBreakdown: healthResults.breakdown,
     commitQuality,
     insights,
-    aiActive: !!process.env.GEMINI_API_KEY
+    aiActive: !!process.env.GEMINI_API_KEY,
+    stars: overview.stars,
+    forks: overview.forks,
+    primaryLanguage: overview.primaryLanguage,
+    version: overview.version
   };
 };

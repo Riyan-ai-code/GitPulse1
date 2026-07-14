@@ -14,6 +14,17 @@ export const getAnalysis = async (req, res, next) => {
   const cacheKey = `analysis:${owner.toLowerCase()}/${repo.toLowerCase()}`;
   const cachedData = await fileDb.getCache(cacheKey);
   if (cachedData) {
+    if (skipHistory !== 'true') {
+      await fileDb.logAudit(
+        owner,
+        repo,
+        cachedData.healthScore,
+        cachedData.stars,
+        cachedData.forks,
+        cachedData.primaryLanguage,
+        cachedData.version
+      );
+    }
     return res.json(cachedData);
   }
 
