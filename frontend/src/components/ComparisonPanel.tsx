@@ -239,7 +239,8 @@ export const ComparisonPanel: React.FC<Props> = ({ currentUser }) => {
       
       {/* Search Input Section (Always hidden during print) */}
       {!data && (
-        <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-6 shadow-soft max-w-2xl mx-auto no-print">
+        <>
+          <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-6 shadow-soft max-w-2xl mx-auto no-print">
           <div className="text-center mb-6">
             <h3 className="text-[16px] font-bold text-text-heading">Compare Repositories</h3>
             <p className="text-[12px] text-text-secondary mt-1">Enter two public repositories to compare health, activity, and size side-by-side</p>
@@ -325,7 +326,8 @@ export const ComparisonPanel: React.FC<Props> = ({ currentUser }) => {
             </div>
           )}
         </div>
-      )}
+      </>
+    )}
 
       {/* Comparison Results Dashboard */}
       {data && (
