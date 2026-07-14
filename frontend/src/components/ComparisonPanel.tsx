@@ -377,6 +377,7 @@ export const ComparisonPanel: React.FC<Props> = ({ currentUser }) => {
                   </div>
                 </div>
               </div>
+            </div>
           )}
 
           {/* Info/Auth Banner */}
