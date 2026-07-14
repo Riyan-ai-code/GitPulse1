@@ -127,13 +127,15 @@ export const CodebaseComposition: React.FC<Props> = ({ compositionData, dependen
       colCounts[node.col]++;
     });
 
+    const maxNodesInCol = Math.max(...colCounts);
+    const height = Math.max(350, maxNodesInCol * 60);
+
     const flowNodes: Node[] = nodesWithColumns.map(node => {
       const colIndex = colIndices.get(node.id) || 0;
       const totalInCol = colCounts[node.col];
       
-      const height = 350;
-      const ySpacing = totalInCol > 1 ? (height - 80) / (totalInCol - 1) : 0;
-      const yStart = totalInCol > 1 ? 40 : height / 2 - 25;
+      const ySpacing = totalInCol > 1 ? (height - 60) / (totalInCol - 1) : 0;
+      const yStart = totalInCol > 1 ? 30 : height / 2 - 25;
       
       const x = node.col * 240 + 30;
       const y = ySpacing > 0 ? colIndex * ySpacing + yStart : yStart;
