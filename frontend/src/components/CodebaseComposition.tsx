@@ -9,9 +9,10 @@ import {
   List, 
   Info,
   Layers,
-  Network,
-  ArrowRight
+  Network
 } from 'lucide-react';
+import { ReactFlow, Controls, Background, Node, Edge } from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
 
 interface TreeNode {
   name: string;
@@ -85,20 +86,20 @@ export const CodebaseComposition: React.FC<Props> = ({ compositionData, dependen
   // Process nodes into columns for Architecture Graph
   const nodesWithColumns = useMemo(() => {
     if (!dependencyGraph) return [];
-    const { nodes, links } = dependencyGraph;
+    const { nodes: graphNodes, links: graphLinks } = dependencyGraph;
     
     const incoming = new Map<string, number>();
     const outgoing = new Map<string, number>();
-    nodes.forEach(n => {
+    graphNodes.forEach(n => {
       incoming.set(n.id, 0);
       outgoing.set(n.id, 0);
     });
-    links.forEach(l => {
+    graphLinks.forEach(l => {
       outgoing.set(l.source, (outgoing.get(l.source) || 0) + 1);
       incoming.set(l.target, (incoming.get(l.target) || 0) + 1);
     });
 
-    return nodes.map(node => {
+    return graphNodes.map(node => {
       const outCount = outgoing.get(node.id) || 0;
       const inCount = incoming.get(node.id) || 0;
       
@@ -112,7 +113,66 @@ export const CodebaseComposition: React.FC<Props> = ({ compositionData, dependen
     });
   }, [dependencyGraph]);
 
-  // Set default selected architecture node
+  // Map to React Flow Nodes & Edges
+  const flowData = useMemo(() => {
+    if (!dependencyGraph || nodesWithColumns.length === 0) return { nodes: [], edges: [] };
+    const { links: graphLinks } = dependencyGraph;
+
+    // Count nodes in each column to space them vertically
+    const colCounts = [0, 0, 0];
+    const colIndices = new Map<string, number>();
+    
+    nodesWithColumns.forEach(node => {
+      colIndices.set(node.id, colCounts[node.col]);
+      colCounts[node.col]++;
+    });
+
+    const flowNodes: Node[] = nodesWithColumns.map(node => {
+      const colIndex = colIndices.get(node.id) || 0;
+      const totalInCol = colCounts[node.col];
+      
+      const height = 350;
+      const ySpacing = totalInCol > 1 ? (height - 80) / (totalInCol - 1) : 0;
+      const yStart = totalInCol > 1 ? 40 : height / 2 - 25;
+      
+      const x = node.col * 240 + 30;
+      const y = ySpacing > 0 ? colIndex * ySpacing + yStart : yStart;
+
+      // Color scheme based on column role
+      const colBg = node.col === 0 ? '#f0f9ff' : node.col === 1 ? '#e0e7ff' : '#ecfdf5';
+      const colText = node.col === 0 ? '#0369a1' : node.col === 1 ? '#4338ca' : '#047857';
+
+      return {
+        id: node.id,
+        position: { x, y },
+        data: { label: node.label },
+        style: {
+          background: colBg,
+          color: colText,
+          border: `1px solid ${colText}`,
+          borderRadius: '10px',
+          fontWeight: 'bold',
+          fontSize: '11px',
+          padding: '8px 12px',
+          width: '150px',
+          textAlign: 'center' as const,
+          boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+        }
+      };
+    });
+
+    const flowEdges: Edge[] = graphLinks.map((link, idx) => ({
+      id: `e-${idx}`,
+      source: link.source,
+      target: link.target,
+      animated: true,
+      style: { stroke: '#818cf8', strokeWidth: 2 },
+    }));
+
+    return { nodes: flowNodes, edges: flowEdges };
+  }, [dependencyGraph, nodesWithColumns]);
+
+  // Set default selected node
   useEffect(() => {
     if (nodesWithColumns.length > 0 && !selectedArchNode) {
       setSelectedArchNode(nodesWithColumns[0].id);
@@ -170,7 +230,7 @@ export const CodebaseComposition: React.FC<Props> = ({ compositionData, dependen
           <p className="text-[12px] text-text-secondary">
             {subTab === 'composition' 
               ? 'Groups directories dynamically by size and traces tree compositions.' 
-              : 'Traces file dependencies and logical module architectures.'}
+              : 'Traces file dependencies and logical module architectures using React Flow.'}
           </p>
         </div>
 
@@ -400,7 +460,7 @@ export const CodebaseComposition: React.FC<Props> = ({ compositionData, dependen
         </div>
       )}
 
-      {/* Architecture Tab View */}
+      {/* Architecture Tab View (React Flow) */}
       {subTab === 'architecture' && (
         <div className="flex-grow flex flex-col justify-between">
           {!dependencyGraph || dependencyGraph.nodes.length === 0 ? (
@@ -408,105 +468,22 @@ export const CodebaseComposition: React.FC<Props> = ({ compositionData, dependen
               <Network className="w-9 h-9 text-text-muted mb-3 animate-pulse" />
               <h4 className="text-[13.5px] font-bold text-text-heading">Architecture Graph Loading</h4>
               <p className="text-[11.5px] text-text-muted mt-1 max-w-xs mx-auto leading-relaxed">
-                Analyzing file hierarchies to reconstruct the module map... (Please verify if you are logged in to unlock complete repository graph analysis).
+                Analyzing codebase layout to generate module dependencies graph...
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 text-left items-stretch">
-              {/* Left visual node map */}
-              <div className="lg:col-span-2 bg-slate-50/50 dark:bg-bg-secondary/20 border border-border-card rounded-xl p-4 flex flex-col justify-between min-h-[420px]">
-                <div className="text-[10px] font-bold text-text-muted mb-4 uppercase tracking-wider">
-                  💡 Click on any module node to inspect its roles, triggers, and dependencies.
-                </div>
-
-                <div className="flex-grow grid grid-cols-1 md:grid-cols-3 gap-4 items-center justify-center py-4">
-                  
-                  {/* Column 1: Sources */}
-                  <div className="space-y-3.5 flex flex-col items-center justify-center">
-                    <span className="text-[9.5px] font-black uppercase text-text-muted tracking-wider mb-1 block">Entrypoints</span>
-                    {nodesWithColumns.filter(n => n.col === 0).length === 0 ? (
-                      <span className="text-[11px] text-text-muted italic">None detected</span>
-                    ) : (
-                      nodesWithColumns.filter(n => n.col === 0).map(node => (
-                        <div
-                          key={node.id}
-                          onClick={() => setSelectedArchNode(node.id)}
-                          className={`px-4 py-3 border rounded-xl font-bold text-[12px] text-center cursor-pointer transition-all duration-200 w-full flex flex-col items-center justify-center gap-1 ${
-                            selectedArchNode === node.id
-                              ? 'bg-sky-500 text-white border-sky-400 ring-4 ring-sky-500/20'
-                              : 'bg-sky-50 dark:bg-sky-950/20 border-sky-200 dark:border-sky-850 text-sky-600 dark:text-sky-400 hover:border-sky-400 hover:scale-[1.01]'
-                          }`}
-                        >
-                          <span className="truncate max-w-[150px] font-extrabold">{node.label}</span>
-                          <span className="text-[9px] opacity-75 font-mono truncate max-w-[150px] font-normal">{node.id}</span>
-                        </div>
-                      ))
-                    )}
-                  </div>
-
-                  {/* Column 2: Core modules */}
-                  <div className="space-y-3.5 flex flex-col items-center justify-center border-y md:border-y-0 md:border-x border-border-divider/50 py-4 md:py-0 md:px-4">
-                    <span className="text-[9.5px] font-black uppercase text-text-muted tracking-wider mb-1 block">Core Modules</span>
-                    {nodesWithColumns.filter(n => n.col === 1).length === 0 ? (
-                      <span className="text-[11px] text-text-muted italic">None detected</span>
-                    ) : (
-                      nodesWithColumns.filter(n => n.col === 1).map(node => (
-                        <div
-                          key={node.id}
-                          onClick={() => setSelectedArchNode(node.id)}
-                          className={`px-4 py-3 border rounded-xl font-bold text-[12px] text-center cursor-pointer transition-all duration-200 w-full flex flex-col items-center justify-center gap-1 ${
-                            selectedArchNode === node.id
-                              ? 'bg-indigo-500 text-white border-indigo-400 ring-4 ring-indigo-500/20'
-                              : 'bg-indigo-50 dark:bg-indigo-950/20 border-indigo-200 dark:border-indigo-850 text-indigo-600 dark:text-indigo-400 hover:border-indigo-400 hover:scale-[1.01]'
-                          }`}
-                        >
-                          <span className="truncate max-w-[150px] font-extrabold">{node.label}</span>
-                          <span className="text-[9px] opacity-75 font-mono truncate max-w-[150px] font-normal">{node.id}</span>
-                        </div>
-                      ))
-                    )}
-                  </div>
-
-                  {/* Column 3: Sinks */}
-                  <div className="space-y-3.5 flex flex-col items-center justify-center">
-                    <span className="text-[9.5px] font-black uppercase text-text-muted tracking-wider mb-1 block">Dependencies</span>
-                    {nodesWithColumns.filter(n => n.col === 2).length === 0 ? (
-                      <span className="text-[11px] text-text-muted italic">None detected</span>
-                    ) : (
-                      nodesWithColumns.filter(n => n.col === 2).map(node => (
-                        <div
-                          key={node.id}
-                          onClick={() => setSelectedArchNode(node.id)}
-                          className={`px-4 py-3 border rounded-xl font-bold text-[12px] text-center cursor-pointer transition-all duration-200 w-full flex flex-col items-center justify-center gap-1 ${
-                            selectedArchNode === node.id
-                              ? 'bg-emerald-500 text-white border-emerald-400 ring-4 ring-emerald-500/20'
-                              : 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-850 text-emerald-600 dark:text-emerald-400 hover:border-emerald-400 hover:scale-[1.01]'
-                          }`}
-                        >
-                          <span className="truncate max-w-[150px] font-extrabold">{node.label}</span>
-                          <span className="text-[9px] opacity-75 font-mono truncate max-w-[150px] font-normal">{node.id}</span>
-                        </div>
-                      ))
-                    )}
-                  </div>
-
-                </div>
-
-                {/* Legend */}
-                <div className="flex gap-4 text-[10.5px] font-bold text-text-secondary justify-center border-t border-border-divider/50 pt-2.5 mt-4">
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-2.5 h-2.5 rounded bg-sky-500/15 border border-sky-400/30" />
-                    <span>Entrypoint / Client</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-2.5 h-2.5 rounded bg-indigo-500/15 border border-indigo-400/30" />
-                    <span>Business Logic</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-2.5 h-2.5 rounded bg-emerald-500/15 border border-emerald-400/30" />
-                    <span>Utils / DB / Sink</span>
-                  </div>
-                </div>
+              {/* React Flow Container */}
+              <div className="lg:col-span-2 bg-slate-50/50 dark:bg-bg-secondary/20 border border-border-card rounded-xl overflow-hidden min-h-[420px] h-[450px] relative no-print">
+                <ReactFlow
+                  nodes={flowData.nodes}
+                  edges={flowData.edges}
+                  onNodeClick={(_, node) => setSelectedArchNode(node.id)}
+                  fitView
+                >
+                  <Background color="#cbd5e1" gap={16} size={1} />
+                  <Controls />
+                </ReactFlow>
               </div>
 
               {/* Right Sidebar specs */}
@@ -522,10 +499,14 @@ export const CodebaseComposition: React.FC<Props> = ({ compositionData, dependen
                     return (
                       <div className="space-y-4">
                         <div className="space-y-1.5 border-b border-border-divider pb-3">
-                          <span className="text-[9px] font-black uppercase bg-brand-primary-light text-brand-primary dark:bg-brand-primary/10 px-2.5 py-0.5 rounded">
-                            {node.type} node
+                          <span className={`text-[9px] font-black uppercase px-2.5 py-0.5 rounded ${
+                            node.col === 0 ? 'bg-sky-100 text-sky-700 dark:bg-sky-950/30 dark:text-sky-400' :
+                            node.col === 1 ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/30 dark:text-indigo-400' :
+                            'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400'
+                          }`}>
+                            {node.col === 0 ? 'Entrypoint' : node.col === 1 ? 'Core logic' : 'Dependency'}
                           </span>
-                          <h4 className="text-[14.5px] font-black text-text-heading leading-tight truncate mt-2.5" title={node.label}>
+                          <h4 className="text-[14px] font-black text-text-heading leading-tight truncate mt-2.5" title={node.label}>
                             {node.label}
                           </h4>
                           <p className="text-[10px] font-mono text-text-muted truncate mt-0.5" title={node.id}>

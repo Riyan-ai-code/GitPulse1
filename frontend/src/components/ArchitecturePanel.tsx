@@ -1,18 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Network, 
   ArrowRight, 
-  Database, 
-  Cpu, 
-  Lock, 
-  Layout, 
-  Server, 
   FileText, 
   Zap,
   BookOpen
 } from 'lucide-react';
+import { ReactFlow, Controls, Background, Node, Edge } from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
 
-interface Node {
+interface NodeSpec {
   id: string;
   label: string;
   category: 'frontend' | 'backend' | 'storage' | 'external';
@@ -33,7 +30,7 @@ export const ArchitecturePanel: React.FC = () => {
   const [selectedNode, setSelectedNode] = useState<string | null>('analysis-module');
   const [activeFlow, setActiveFlow] = useState<string | null>(null);
 
-  const nodes: Node[] = [
+  const nodes: NodeSpec[] = [
     {
       id: 'frontend-ui',
       label: 'Frontend Dashboard',
@@ -169,37 +166,100 @@ export const ArchitecturePanel: React.FC = () => {
 
   const activeNode = nodes.find(n => n.id === selectedNode);
 
-  const getCategoryColor = (cat: 'frontend' | 'backend' | 'storage' | 'external', isSelected: boolean) => {
-    switch (cat) {
-      case 'frontend':
-        return isSelected ? 'bg-sky-500 text-white border-sky-400 ring-4 ring-sky-500/20' : 'bg-sky-50 dark:bg-sky-950/20 border-sky-200 dark:border-sky-850 text-sky-600 dark:text-sky-400 hover:border-sky-400';
-      case 'backend':
-        return isSelected ? 'bg-indigo-500 text-white border-indigo-400 ring-4 ring-indigo-500/20' : 'bg-indigo-50 dark:bg-indigo-950/20 border-indigo-200 dark:border-indigo-850 text-indigo-600 dark:text-indigo-400 hover:border-indigo-400';
-      case 'storage':
-        return isSelected ? 'bg-emerald-500 text-white border-emerald-400 ring-4 ring-emerald-500/20' : 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-850 text-emerald-600 dark:text-emerald-400 hover:border-emerald-400';
-      case 'external':
-        return isSelected ? 'bg-amber-500 text-white border-amber-400 ring-4 ring-amber-500/20' : 'bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-850 text-amber-600 dark:text-amber-400 hover:border-amber-400';
-    }
-  };
-
   const isNodeActiveInFlow = (nodeId: string) => {
     if (!activeFlow) return true;
     const flow = flows.find(f => f.id === activeFlow);
     return flow ? flow.activeNodes.includes(nodeId) : true;
   };
 
+  // React Flow Nodes
+  const flowNodes = useMemo(() => {
+    return nodes.map(node => {
+      let x = 220;
+      let y = 120;
+      if (node.id === 'frontend-ui') { x = 240; y = 15; }
+      else if (node.id === 'backend-router') { x = 240; y = 110; }
+      else if (node.id === 'auth-module') { x = 20; y = 205; }
+      else if (node.id === 'analysis-module') { x = 240; y = 205; }
+      else if (node.id === 'repo-module') { x = 460; y = 205; }
+      else if (node.id === 'commits-module') { x = 120; y = 300; }
+      else if (node.id === 'contributors-module') { x = 360; y = 300; }
+      else if (node.id === 'supabase-cache') { x = 20; y = 395; }
+      else if (node.id === 'supabase-history') { x = 180; y = 395; }
+      else if (node.id === 'gemini-ai') { x = 340; y = 395; }
+      else if (node.id === 'github-api') { x = 500; y = 395; }
+
+      const isNodeActive = isNodeActiveInFlow(node.id);
+      
+      const colBg = 
+        node.category === 'frontend' ? '#f0f9ff' :
+        node.category === 'backend' ? '#e0e7ff' :
+        node.category === 'storage' ? '#ecfdf5' : '#fffbeb';
+      const colText = 
+        node.category === 'frontend' ? '#0369a1' :
+        node.category === 'backend' ? '#4338ca' :
+        node.category === 'storage' ? '#047857' : '#b45309';
+
+      return {
+        id: node.id,
+        position: { x, y },
+        data: { label: node.label },
+        style: {
+          background: colBg,
+          color: colText,
+          border: `1px solid ${colText}`,
+          borderRadius: '10px',
+          fontWeight: 'bold',
+          fontSize: '11px',
+          padding: '8px 12px',
+          width: '160px',
+          textAlign: 'center' as const,
+          boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+          opacity: isNodeActive ? 1 : 0.25,
+          transition: 'opacity 0.2s',
+        }
+      };
+    });
+  }, [activeFlow]);
+
+  // React Flow Edges
+  const flowEdges = useMemo(() => {
+    const edgesList: Edge[] = [];
+    nodes.forEach(node => {
+      node.connections.forEach(connId => {
+        const isEdgeActive = !activeFlow || (
+          isNodeActiveInFlow(node.id) && isNodeActiveInFlow(connId)
+        );
+        
+        edgesList.push({
+          id: `e-${node.id}-${connId}`,
+          source: node.id,
+          target: connId,
+          animated: isEdgeActive,
+          style: { 
+            stroke: node.category === 'frontend' ? '#38bdf8' : '#818cf8', 
+            strokeWidth: 2.2,
+            opacity: isEdgeActive ? 1 : 0.15,
+            transition: 'opacity 0.2s',
+          }
+        });
+      });
+    });
+    return edgesList;
+  }, [activeFlow]);
+
   return (
     <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-6 shadow-soft space-y-6 min-h-[600px] animate-fadeIn">
       
       {/* Tab Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border-divider pb-4">
-        <div className="space-y-1">
+        <div className="space-y-1 text-left">
           <h3 className="text-[16px] font-bold text-text-heading flex items-center gap-2">
             <Network className="w-5 h-5 text-brand-primary" />
             GitPulse Architecture & Dependencies
           </h3>
           <p className="text-[12px] text-text-secondary">
-            Visual map of GitPulse\'s modular monolith layout, context boundaries, and internal dependencies.
+            Visual map of GitPulse's modular monolith layout, context boundaries, and internal dependencies using React Flow.
           </p>
         </div>
 
@@ -231,105 +291,19 @@ export const ArchitecturePanel: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
         
-        {/* Visual Map Area */}
-        <div className="lg:col-span-2 bg-slate-50/50 dark:bg-bg-secondary/20 border border-border-card rounded-xl p-4 flex flex-col justify-between overflow-hidden min-h-[450px]">
-          
-          <div className="text-[11px] font-bold text-text-muted mb-4 uppercase tracking-wider">
-            {activeFlow ? flows.find(f => f.id === activeFlow)?.description : '💡 Click on any component to view its files, dependencies, and responsibilities.'}
-          </div>
-
-          <div className="flex-1 flex flex-col justify-center gap-8 relative py-4">
-            
-            {/* Row 1: Frontend Client */}
-            <div className="flex justify-center">
-              {nodes.filter(n => n.category === 'frontend').map(node => (
-                <div
-                  key={node.id}
-                  onClick={() => setSelectedNode(node.id)}
-                  className={`px-5 py-3 border rounded-xl font-bold text-[13.5px] text-center cursor-pointer transition-all duration-300 w-52 flex flex-col items-center gap-1.5 ${getCategoryColor(node.category, selectedNode === node.id)} ${
-                    !isNodeActiveInFlow(node.id) ? 'opacity-30' : ''
-                  }`}
-                >
-                  <Layout className="w-4 h-4" />
-                  <span>{node.label}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* Row 2: API Gateway / Entry */}
-            <div className="flex justify-center">
-              {nodes.filter(n => n.id === 'backend-router').map(node => (
-                <div
-                  key={node.id}
-                  onClick={() => setSelectedNode(node.id)}
-                  className={`px-5 py-3 border rounded-xl font-bold text-[13.5px] text-center cursor-pointer transition-all duration-300 w-52 flex flex-col items-center gap-1.5 ${getCategoryColor(node.category, selectedNode === node.id)} ${
-                    !isNodeActiveInFlow(node.id) ? 'opacity-30' : ''
-                  }`}
-                >
-                  <Server className="w-4 h-4" />
-                  <span>{node.label}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* Row 3: Backend Business Modules */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 justify-center justify-items-center">
-              {nodes.filter(n => n.category === 'backend' && n.id !== 'backend-router').map(node => (
-                <div
-                  key={node.id}
-                  onClick={() => setSelectedNode(node.id)}
-                  className={`px-3 py-2.5 border rounded-xl font-bold text-[11.5px] text-center cursor-pointer transition-all duration-300 w-full flex flex-col items-center justify-center gap-1.5 min-h-[75px] ${getCategoryColor(node.category, selectedNode === node.id)} ${
-                    !isNodeActiveInFlow(node.id) ? 'opacity-30' : ''
-                  }`}
-                >
-                  {node.id === 'auth-module' && <Lock className="w-3.5 h-3.5" />}
-                  {node.id === 'analysis-module' && <Zap className="w-3.5 h-3.5" />}
-                  {node.id !== 'auth-module' && node.id !== 'analysis-module' && <Cpu className="w-3.5 h-3.5" />}
-                  <span>{node.label}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* Row 4: Databases and AI/API Integrations */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 justify-center justify-items-center">
-              {nodes.filter(n => n.category === 'storage' || n.category === 'external').map(node => (
-                <div
-                  key={node.id}
-                  onClick={() => setSelectedNode(node.id)}
-                  className={`px-3 py-2.5 border rounded-xl font-bold text-[11.5px] text-center cursor-pointer transition-all duration-300 w-full flex flex-col items-center justify-center gap-1.5 min-h-[75px] ${getCategoryColor(node.category, selectedNode === node.id)} ${
-                    !isNodeActiveInFlow(node.id) ? 'opacity-30' : ''
-                  }`}
-                >
-                  {node.category === 'storage' ? <Database className="w-3.5 h-3.5" /> : <Network className="w-3.5 h-3.5" />}
-                  <span>{node.label}</span>
-                </div>
-              ))}
-            </div>
-
-          </div>
-
-          {/* Color Key Guide */}
-          <div className="flex flex-wrap gap-4 text-[11px] font-bold text-text-secondary justify-center border-t border-border-divider/50 pt-3 mt-4">
-            <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded bg-sky-500/10 border border-sky-500/20" />
-              <span>Frontend App</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded bg-indigo-500/10 border border-indigo-500/20" />
-              <span>Express Backend</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded bg-emerald-500/10 border border-emerald-500/20" />
-              <span>Supabase DB</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded bg-amber-500/10 border border-amber-500/20" />
-              <span>External Services</span>
-            </div>
-          </div>
-
+        {/* Visual Map Area using React Flow */}
+        <div className="lg:col-span-2 bg-slate-50/50 dark:bg-bg-secondary/20 border border-border-card rounded-xl overflow-hidden min-h-[420px] h-[450px] relative no-print">
+          <ReactFlow
+            nodes={flowNodes}
+            edges={flowEdges}
+            onNodeClick={(_, node) => setSelectedNode(node.id)}
+            fitView
+          >
+            <Background color="#cbd5e1" gap={16} size={1} />
+            <Controls />
+          </ReactFlow>
         </div>
 
         {/* Sidebar Info Area */}
