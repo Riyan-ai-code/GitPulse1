@@ -113,6 +113,15 @@ export const CodebaseComposition: React.FC<Props> = ({ compositionData, dependen
     });
   }, [dependencyGraph]);
 
+  const maxNodesInCol = useMemo(() => {
+    if (nodesWithColumns.length === 0) return 0;
+    const colCounts = [0, 0, 0];
+    nodesWithColumns.forEach(node => {
+      colCounts[node.col]++;
+    });
+    return Math.max(...colCounts);
+  }, [nodesWithColumns]);
+
   // Map to React Flow Nodes & Edges
   const flowData = useMemo(() => {
     if (!dependencyGraph || nodesWithColumns.length === 0) return { nodes: [], edges: [] };
@@ -127,15 +136,14 @@ export const CodebaseComposition: React.FC<Props> = ({ compositionData, dependen
       colCounts[node.col]++;
     });
 
-    const maxNodesInCol = Math.max(...colCounts);
-    const height = Math.max(350, maxNodesInCol * 60);
+    const height = Math.max(450, maxNodesInCol * 70);
 
     const flowNodes: Node[] = nodesWithColumns.map(node => {
       const colIndex = colIndices.get(node.id) || 0;
       const totalInCol = colCounts[node.col];
       
-      const ySpacing = totalInCol > 1 ? (height - 60) / (totalInCol - 1) : 0;
-      const yStart = totalInCol > 1 ? 30 : height / 2 - 25;
+      const ySpacing = totalInCol > 1 ? (height - 80) / (totalInCol - 1) : 0;
+      const yStart = totalInCol > 1 ? 40 : height / 2 - 25;
       
       const x = node.col * 240 + 30;
       const y = ySpacing > 0 ? colIndex * ySpacing + yStart : yStart;
@@ -476,16 +484,20 @@ export const CodebaseComposition: React.FC<Props> = ({ compositionData, dependen
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 text-left items-stretch">
               {/* React Flow Container */}
-              <div className="lg:col-span-2 bg-slate-50/50 dark:bg-bg-secondary/20 border border-border-card rounded-xl overflow-hidden min-h-[420px] h-[450px] relative no-print">
-                <ReactFlow
-                  nodes={flowData.nodes}
-                  edges={flowData.edges}
-                  onNodeClick={(_, node) => setSelectedArchNode(node.id)}
-                  fitView
-                >
-                  <Background color="#cbd5e1" gap={16} size={1} />
-                  <Controls />
-                </ReactFlow>
+              <div className="lg:col-span-2 bg-slate-50/50 dark:bg-bg-secondary/20 border border-border-card rounded-xl overflow-y-auto max-h-[500px] relative no-print">
+                <div style={{ height: `${Math.max(450, maxNodesInCol * 70)}px` }} className="w-full relative">
+                  <ReactFlow
+                    nodes={flowData.nodes}
+                    edges={flowData.edges}
+                    onNodeClick={(_, node) => setSelectedArchNode(node.id)}
+                    zoomOnScroll={false}
+                    panOnDrag={true}
+                    fitView
+                  >
+                    <Background color="#cbd5e1" gap={16} size={1} />
+                    <Controls />
+                  </ReactFlow>
+                </div>
               </div>
 
               {/* Right Sidebar specs */}

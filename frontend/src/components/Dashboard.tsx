@@ -235,6 +235,12 @@ export default function Dashboard() {
   // Fetch dashboard data
   const loadData = async (owner: string, repo: string) => {
     setError(null);
+    setOverview(null);
+    setCommits(null);
+    setContributors(null);
+    setAnalysis(null);
+    setComposition(null);
+    
     setLoadingOverview(true);
     setLoadingCommits(true);
     setLoadingContributors(true);
