@@ -30,7 +30,8 @@ import {
   Trash2,
   Layers,
   Printer,
-  GraduationCap
+  GraduationCap,
+  Network
 } from 'lucide-react';
 import {
   API_BASE_URL,
@@ -65,6 +66,7 @@ const CodebaseComposition = dynamic(() => import('./CodebaseComposition'));
 const PrsIssuesPanel = dynamic(() => import('./PrsIssuesPanel'));
 const ScoreboardPanel = dynamic(() => import('./ScoreboardPanel'));
 const GSoCPanel = dynamic(() => import('./GSoCPanel'));
+const ArchitecturePanel = dynamic(() => import('./ArchitecturePanel'));
 import Skeleton from './Skeleton';
 
 const GithubIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -99,7 +101,7 @@ const GithubIconLarge = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-type TabType = 'composition' | 'overview' | 'commits' | 'contributors' | 'quality' | 'insights' | 'compare' | 'prs-issues' | 'recent-audits' | 'about' | 'scoreboard' | 'gsoc';
+type TabType = 'composition' | 'overview' | 'commits' | 'contributors' | 'quality' | 'insights' | 'compare' | 'prs-issues' | 'recent-audits' | 'about' | 'scoreboard' | 'gsoc' | 'architecture';
 
 const formatSizeForPrint = (kb: number) => {
   if (kb < 1024) return `${kb} KB`;
@@ -788,6 +790,18 @@ export default function Dashboard() {
                 <GraduationCap className="w-[18px] h-[18px]" />
                 GSoC Portal
               </button>
+
+              <button
+                onClick={() => navigateToTab('architecture')}
+                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-[14px] font-semibold transition-colors cursor-pointer ${
+                  activeTab === 'architecture'
+                    ? 'bg-brand-primary-light text-brand-primary dark:bg-brand-primary/10'
+                    : 'text-text-secondary hover:bg-bg-secondary hover:text-text-heading'
+                }`}
+              >
+                <Network className="w-[18px] h-[18px]" />
+                Architecture Map
+              </button>
             </div>
           </nav>
         </div>
@@ -1278,6 +1292,12 @@ export default function Dashboard() {
                     setInputValue(`${owner}/${repo}`);
                     setActiveTab('overview');
                   }} />
+                </div>
+              )}
+
+              {activeTab === 'architecture' && (
+                <div className="w-full animate-fadeIn">
+                  <ArchitecturePanel />
                 </div>
               )}
   
