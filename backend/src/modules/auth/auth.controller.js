@@ -6,6 +6,7 @@ dotenv.config();
 const CLIENT_ID = process.env.GITHUB_CLIENT_ID;
 const CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
 const REDIRECT_URI = process.env.GITHUB_REDIRECT_URI || 'http://localhost:5000/api/auth/github/callback';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
 export const redirectToGithub = (req, res) => {
   if (!CLIENT_ID) {
@@ -23,7 +24,7 @@ export const githubCallback = async (req, res) => {
   const { code } = req.query;
 
   if (!code) {
-    return res.redirect('http://localhost:3000?auth_error=code_missing');
+    return res.redirect(`${FRONTEND_URL}?auth_error=code_missing`);
   }
 
   try {
@@ -46,7 +47,7 @@ export const githubCallback = async (req, res) => {
 
     if (error) {
       console.error('[OAuth] Callback token exchange failure:', error_description || error);
-      return res.redirect(`http://localhost:3000?auth_error=${encodeURIComponent(error)}`);
+      return res.redirect(`${FRONTEND_URL}?auth_error=${encodeURIComponent(error)}`);
     }
 
     const isSecure = req.secure || req.headers['x-forwarded-proto'] === 'https';
@@ -67,10 +68,10 @@ export const githubCallback = async (req, res) => {
       maxAge: 24 * 60 * 60 * 1000 // 24 hours
     });
 
-    return res.redirect('http://localhost:3000?auth_success=true');
+    return res.redirect(`${FRONTEND_URL}?auth_success=true`);
   } catch (error) {
     console.error('[OAuth] Token exchange network error:', error);
-    return res.redirect('http://localhost:3000?auth_error=exchange_failed');
+    return res.redirect(`${FRONTEND_URL}?auth_error=exchange_failed`);
   }
 };
 
