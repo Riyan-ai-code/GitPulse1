@@ -279,6 +279,9 @@ export default function Dashboard() {
       .then((res) => {
         setAnalysis(res);
         setLoadingAnalysis(false);
+        if (!shouldSkipHistoryRef.current) {
+          loadHistoryList();
+        }
       })
       .catch((err) => {
         console.error(err);
@@ -1179,7 +1182,7 @@ export default function Dashboard() {
 
               {activeTab === 'compare' && (
                 <div className="animate-fadeIn">
-                  <ComparisonPanel currentUser={currentUser} />
+                  <ComparisonPanel currentUser={currentUser} onHistoryUpdate={loadHistoryList} />
                 </div>
               )}
 

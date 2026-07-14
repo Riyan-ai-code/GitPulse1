@@ -44,9 +44,10 @@ interface ComparisonData {
 
 interface Props {
   currentUser?: { login: string; avatar_url: string; html_url: string } | null;
+  onHistoryUpdate?: () => void;
 }
 
-export const ComparisonPanel: React.FC<Props> = ({ currentUser }) => {
+export const ComparisonPanel: React.FC<Props> = ({ currentUser, onHistoryUpdate }) => {
   const [repo1Input, setRepo1Input] = useState('');
   const [repo2Input, setRepo2Input] = useState('');
   const [loading, setLoading] = useState(false);
@@ -92,6 +93,10 @@ export const ComparisonPanel: React.FC<Props> = ({ currentUser }) => {
         repo1: { overview: r1Overview, commits: r1Commits, analysis: r1Analysis, prsIssues: r1PrsIssues },
         repo2: { overview: r2Overview, commits: r2Commits, analysis: r2Analysis, prsIssues: r2PrsIssues },
       });
+      
+      if (currentUser && onHistoryUpdate) {
+        onHistoryUpdate();
+      }
     } catch (err: any) {
       console.error(err);
       setError(err.message || 'Failed to retrieve comparison statistics. Verify rate limits and spelling.');
