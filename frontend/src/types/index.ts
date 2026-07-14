@@ -98,6 +98,7 @@ export interface RepositoryAnalysis {
   commitQuality?: CommitQualityDetails;
   insights: any[];
   aiActive?: boolean;
+  dependencyGraph?: any;
 }
 
 export interface GSoCProject {

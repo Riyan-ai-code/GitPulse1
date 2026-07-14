@@ -6,7 +6,64 @@ import { calculateHealthScore } from './rules/healthScore.js';
 import { calculateCommitQualityScore } from './rules/commitQuality.js';
 import { generateInsights } from './rules/insights.js';
 import { logAudit } from '../../shared/db/fileDb.js';
-import { getAISuggestions } from './ai.service.js';
+import { getAISuggestions, getAIDependencyGraph } from './ai.service.js';
+
+const generateLocalDependencyGraph = (codebaseTree) => {
+  const nodes = [];
+  const links = [];
+
+  if (!codebaseTree) {
+    return { nodes, links };
+  }
+
+  // Create root node
+  nodes.push({
+    id: codebaseTree.name || 'root',
+    label: codebaseTree.name || 'Root',
+    type: 'directory',
+    role: 'Root Repository Entry Point'
+  });
+
+  // Traverse the first 2 levels of directories to build a structural graph
+  const traverse = (node, parentId, depth = 0) => {
+    if (depth >= 2 || !node.children) return;
+
+    node.children.forEach(child => {
+      if (child.type === 'directory') {
+        const nodeId = parentId ? `${parentId}/${child.name}` : child.name;
+        nodes.push({
+          id: nodeId,
+          label: child.name,
+          type: 'directory',
+          role: `Subdirectory containing ${child.children ? child.children.length : 0} items`
+        });
+        
+        links.push({
+          source: parentId,
+          target: nodeId
+        });
+
+        traverse(child, nodeId, depth + 1);
+      } else {
+        const nodeId = parentId ? `${parentId}/${child.name}` : child.name;
+        nodes.push({
+          id: nodeId,
+          label: child.name,
+          type: 'file',
+          role: 'Repository source or config file'
+        });
+
+        links.push({
+          source: parentId,
+          target: nodeId
+        });
+      }
+    });
+  };
+
+  traverse(codebaseTree, codebaseTree.name || 'root', 0);
+  return { nodes, links };
+};
 
 export const analyzeRepository = async (owner, repo, { skipHistory = false } = {}) => {
   // 1. Fetch data from other modules concurrently (internal orchestration)
@@ -69,6 +126,16 @@ export const analyzeRepository = async (owner, repo, { skipHistory = false } = {
     daysSinceLastCommit
   });
 
+  // 6. Generate codebase dependency graph
+  const codebaseTree = await repositoryService.getCodebaseComposition(owner, repo);
+  let dependencyGraph = null;
+  if (process.env.GEMINI_API_KEY) {
+    dependencyGraph = await getAIDependencyGraph(owner, repo, codebaseTree);
+  }
+  if (!dependencyGraph) {
+    dependencyGraph = generateLocalDependencyGraph(codebaseTree);
+  }
+
   // Log successful analysis into local database history (skip for examples & guests)
   if (!skipHistory) {
     await logAudit(
@@ -100,6 +167,7 @@ export const analyzeRepository = async (owner, repo, { skipHistory = false } = {
     stars: overview.stars,
     forks: overview.forks,
     primaryLanguage: overview.primaryLanguage,
-    version: overview.version
+    version: overview.version,
+    dependencyGraph
   };
 };

@@ -74,3 +74,43 @@ export const getAISuggestions = async (owner, repo, repoStats) => {
 
   return null;
 };
+
+export const getAIDependencyGraph = async (owner, repo, codebaseTree) => {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) return null;
+
+  try {
+    const ai = new GoogleGenerativeAI(apiKey);
+    const model = ai.getGenerativeModel({ 
+      model: 'gemini-flash-latest',
+      generationConfig: { responseMimeType: 'application/json' }
+    });
+
+    const prompt = `You are a Senior Software Architect auditing the codebase structure of "${owner}/${repo}".
+    
+    Here is the directory tree (showing folders and file sizes):
+    ${JSON.stringify(codebaseTree, null, 2)}
+    
+    Identify the 5 to 10 most important logical modules, frameworks, or directories in this codebase.
+    Construct a dependency graph showing how these modules depend on each other (e.g., page modules depend on components, components depend on utils/contexts, backend routers depend on controllers, controllers depend on services, etc.).
+    
+    Output a JSON object matching this exact schema:
+    {
+      "nodes": [
+        { "id": "unique-id (e.g. folder path)", "label": "Short Friendly Name (e.g. Components)", "type": "directory|file", "role": "Brief description of role in codebase" }
+      ],
+      "links": [
+        { "source": "source-node-id", "target": "target-node-id" }
+      ]
+    }
+    
+    Ensure all node ids referenced in links are present in the nodes list. Output only the raw valid JSON.`;
+
+    const result = await model.generateContent(prompt);
+    const responseText = result.response.text();
+    return JSON.parse(responseText);
+  } catch (error) {
+    console.error('[Gemini AI] Failed to generate dependency graph:', error);
+    return null;
+  }
+};
