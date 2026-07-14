@@ -229,9 +229,9 @@ export const getCodebaseComposition = async (owner, repo) => {
 
     node.children.sort((a, b) => b.size - a.size);
 
-    if (node.children.length > 12) {
-      const topChildren = node.children.slice(0, 10);
-      const others = node.children.slice(10);
+    if (node.children.length > 100) {
+      const topChildren = node.children.slice(0, 95);
+      const others = node.children.slice(95);
       const othersSize = others.reduce((sum, c) => sum + c.size, 0);
 
       node.children = topChildren;
@@ -248,7 +248,7 @@ export const getCodebaseComposition = async (owner, repo) => {
     node.children.forEach(child => pruneTree(child, currentDepth + 1, maxDepth));
   };
 
-  pruneTree(root, 0, 3);
+  pruneTree(root, 0, 8);
 
   return root;
 };
