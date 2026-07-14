@@ -13,7 +13,7 @@ export const getAnalysis = async (req, res, next) => {
 
   const cacheKey = `analysis:${owner.toLowerCase()}/${repo.toLowerCase()}`;
   const cachedData = await fileDb.getCache(cacheKey);
-  if (cachedData) {
+  if (cachedData && cachedData.stars !== undefined && cachedData.forks !== undefined && cachedData.primaryLanguage !== undefined) {
     if (skipHistory !== 'true') {
       await fileDb.logAudit(
         owner,
