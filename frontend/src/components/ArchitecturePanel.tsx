@@ -411,3 +411,5 @@ export const ArchitecturePanel: React.FC = () => {
     </div>
   );
 };
+
+export default ArchitecturePanel;
