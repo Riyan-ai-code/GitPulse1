@@ -1164,7 +1164,7 @@ export default function Dashboard() {
 
               {activeTab === 'compare' && (
                 <div className="animate-fadeIn">
-                  <ComparisonPanel />
+                  <ComparisonPanel currentUser={currentUser} />
                 </div>
               )}
 
