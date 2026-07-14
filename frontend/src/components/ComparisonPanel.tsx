@@ -80,11 +80,11 @@ export const ComparisonPanel: React.FC<Props> = ({ currentUser }) => {
       ] = await Promise.all([
         fetchRepositoryOverview(p1.owner, p1.repo),
         fetchCommitStats(p1.owner, p1.repo),
-        fetchAnalysis(p1.owner, p1.repo),
+        fetchAnalysis(p1.owner, p1.repo, !currentUser),
         fetchPrsAndIssues(p1.owner, p1.repo),
         fetchRepositoryOverview(p2.owner, p2.repo),
         fetchCommitStats(p2.owner, p2.repo),
-        fetchAnalysis(p2.owner, p2.repo),
+        fetchAnalysis(p2.owner, p2.repo, !currentUser),
         fetchPrsAndIssues(p2.owner, p2.repo),
       ]);
 
@@ -385,14 +385,14 @@ export const ComparisonPanel: React.FC<Props> = ({ currentUser }) => {
             <div className="bg-slate-50 dark:bg-bg-secondary/30 border border-border-card rounded-[12px] p-4 flex items-start gap-3 no-print">
               <FileText className="w-5 h-5 text-brand-primary mt-0.5 flex-shrink-0" />
               <div className="text-left text-[12.5px] leading-relaxed">
-                <span className="font-bold text-text-heading">💡 Full Comparison Reports Available:</span> Both repositories have been successfully stored in the database. For full-width dashboards, deep health breakdowns, and AI-powered codebase insights for each repository, navigate to the <span className="font-semibold text-brand-primary">Recent Audits</span> tab and click <span className="font-semibold">"View Report"</span> next to them.
+                <span className="font-bold text-text-heading">💡 Full Comparison:</span> For a full-on comparison of everything (deep health scores, commit quality, AI insights, and code compositions), go to <span className="font-semibold text-brand-primary">Recent Audits</span> and click <span className="font-bold text-brand-primary">"View Report"</span> (both are stored in the database).
               </div>
             </div>
           ) : (
             <div className="bg-amber-500/10 border border-brand-amber/20 dark:border-brand-amber/10 rounded-[12px] p-4 flex items-start gap-3 no-print">
               <ShieldAlert className="w-5 h-5 text-brand-amber mt-0.5 flex-shrink-0" />
               <div className="text-left text-[12.5px] leading-relaxed">
-                <span className="font-bold text-text-heading">🔒 Save & View Full Reports:</span> To save audit history, compare complete codebase compositions, and get full deep-dive reports for both of these repositories, please <span className="font-semibold text-brand-primary">Sign In</span> with GitHub at the landing page.
+                <span className="font-bold text-text-heading">🔒 Save Audits:</span> To get a full report of the two compared repositories and save them to the database, please <span className="font-semibold text-brand-primary">Sign In</span> with GitHub.
               </div>
             </div>
           )}
