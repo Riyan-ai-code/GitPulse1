@@ -173,7 +173,6 @@ export default function Dashboard() {
       await apiLogout();
       setCurrentUser(null);
       resetSearch();
-      alert('Logged out successfully.');
     } catch (err) {
       console.error('[Auth] Logout failed:', err);
     }
