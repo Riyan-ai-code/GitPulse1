@@ -1,6 +1,6 @@
 import githubClient from '../../shared/client/github.js';
 
-// Helper to get total count
+// Helper to get total count of commits
 const getTotalCommitsCount = async (owner, repo) => {
   try {
     const response = await githubClient.get(`/repos/${owner}/${repo}/commits`, {
@@ -20,6 +20,23 @@ const getTotalCommitsCount = async (owner, repo) => {
   }
 };
 
+// Helper to get total count of contributors
+const getTotalContributorsCount = async (owner, repo) => {
+  try {
+    const response = await githubClient.get(`/repos/${owner}/${repo}/contributors`, {
+      params: { per_page: 1 }
+    });
+    const linkHeader = response.headers['link'];
+    if (!linkHeader) {
+      return response.data.length;
+    }
+    const match = linkHeader.match(/[?&]page=(\d+)>; rel="last"/);
+    return match ? parseInt(match[1], 10) : 1;
+  } catch (error) {
+    return 0;
+  }
+};
+
 export const getContributorsList = async (owner, repo) => {
   // 1. Fetch top contributors (max 10 for dashboard preview)
   let contributorsData = [];
@@ -27,9 +44,8 @@ export const getContributorsList = async (owner, repo) => {
     const { data } = await githubClient.get(`/repos/${owner}/${repo}/contributors`, {
       params: { per_page: 10 }
     });
-    contributorsData = data;
+    contributorsData = data || [];
   } catch (error) {
-    // If empty repo, sometimes it returns 204 No Content or error, catch it
     if (error.response && error.response.status === 409) {
       contributorsData = [];
     } else {
@@ -37,8 +53,11 @@ export const getContributorsList = async (owner, repo) => {
     }
   }
 
-  // 2. Fetch total commits of the repo to compute true percentages
-  const totalCommits = await getTotalCommitsCount(owner, repo);
+  // 2. Fetch total commits and contributors of the repo to compute true metrics
+  const [totalCommits, totalContributors] = await Promise.all([
+    getTotalCommitsCount(owner, repo),
+    getTotalContributorsCount(owner, repo)
+  ]);
 
   // 3. Map and calculate contribution percentages
   const contributors = contributorsData.map(c => {
@@ -54,7 +73,8 @@ export const getContributorsList = async (owner, repo) => {
   });
 
   return {
-    totalContributors: contributors.length, // this is out of the top 10 fetched or we can count how many contributors github lists in headers
+    totalContributors,
+    totalCommits,
     contributors
   };
 };

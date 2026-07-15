@@ -103,7 +103,7 @@ export const PrsIssuesPanel: React.FC<Props> = ({ owner, repo }) => {
             <div className="text-[28px] font-extrabold text-text-heading leading-none">
               {prs.avgMergeTimeHours !== null ? `${prs.avgMergeTimeHours} hrs` : 'N/A'}
             </div>
-            <p className="text-[11px] text-text-secondary mt-1">Average time from open to merge</p>
+            <p className="text-[11px] text-text-secondary mt-1">Average time to merge (last 100 closed)</p>
           </div>
         </div>
 
@@ -119,7 +119,7 @@ export const PrsIssuesPanel: React.FC<Props> = ({ owner, repo }) => {
             <div className="text-[28px] font-extrabold text-text-heading leading-none">
               {issues.avgResolutionTimeHours !== null ? `${issues.avgResolutionTimeHours} hrs` : 'N/A'}
             </div>
-            <p className="text-[11px] text-text-secondary mt-1">Average time to resolve bugs/tickets</p>
+            <p className="text-[11px] text-text-secondary mt-1">Average time to resolve (last 100 closed)</p>
           </div>
         </div>
 
@@ -135,7 +135,7 @@ export const PrsIssuesPanel: React.FC<Props> = ({ owner, repo }) => {
             <div className="text-[28px] font-extrabold text-text-heading leading-none">
               {issues.staleCount}
             </div>
-            <p className="text-[11px] text-text-secondary mt-1">Open tickets with no activity &gt; 60 days</p>
+            <p className="text-[11px] text-text-secondary mt-1">No activity &gt; 60 days (oldest 50 check)</p>
           </div>
         </div>
 

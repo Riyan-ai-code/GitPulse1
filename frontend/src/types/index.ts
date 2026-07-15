@@ -67,6 +67,7 @@ export interface Contributor {
 
 export interface ContributorsList {
   totalContributors: number;
+  totalCommits?: number;
   contributors: Contributor[];
 }
 

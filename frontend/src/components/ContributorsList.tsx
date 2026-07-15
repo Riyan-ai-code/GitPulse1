@@ -12,6 +12,7 @@ export const ContributorsList: React.FC<Props> = ({ data, commits = [] }) => {
   const totalContributors = data.totalContributors || contributors.length;
 
   // Calculate statistics
+  const totalCommits = data.totalCommits !== undefined ? data.totalCommits : contributors.reduce((acc, curr) => acc + curr.commits, 0);
   const totalCommitsSum = contributors.reduce((acc, curr) => acc + curr.commits, 0);
   const avgCommits = contributors.length > 0 ? Math.round(totalCommitsSum / contributors.length) : 0;
   
@@ -116,9 +117,9 @@ export const ContributorsList: React.FC<Props> = ({ data, commits = [] }) => {
             <span className="text-[11px] font-bold uppercase tracking-wider">Total Commits</span>
           </div>
           <p className="text-[22px] font-extrabold text-text-heading leading-none mt-1">
-            {totalCommitsSum.toLocaleString()}
+            {totalCommits.toLocaleString()}
           </p>
-          <span className="text-[10px] text-text-secondary block mt-1">Across analyzed contributors</span>
+          <span className="text-[10px] text-text-secondary block mt-1">Total repository commits</span>
         </div>
 
         <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-4 shadow-soft">
