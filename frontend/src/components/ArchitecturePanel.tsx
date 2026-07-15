@@ -6,7 +6,7 @@ import {
   Zap,
   BookOpen
 } from 'lucide-react';
-import { ReactFlow, Controls, Background, Node, Edge } from '@xyflow/react';
+import { ReactFlow, Controls, Background, Node, Edge, MarkerType } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
 interface NodeSpec {
@@ -235,7 +235,14 @@ export const ArchitecturePanel: React.FC = () => {
           id: `e-${node.id}-${connId}`,
           source: node.id,
           target: connId,
+          type: 'smoothstep',
           animated: isEdgeActive,
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 15,
+            height: 15,
+            color: node.category === 'frontend' ? '#38bdf8' : '#818cf8',
+          },
           style: { 
             stroke: node.category === 'frontend' ? '#38bdf8' : '#818cf8', 
             strokeWidth: 2.2,
