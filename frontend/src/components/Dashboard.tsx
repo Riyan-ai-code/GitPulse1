@@ -941,7 +941,7 @@ export default function Dashboard() {
 
         {/* Content Body */}
         <div className="flex-1 min-h-0 p-4 overflow-y-auto space-y-4">
-          {error ? (
+          {error && activeTab === 'overview' ? (
             <div className="bg-white dark:bg-bg-card border border-border-card rounded-[12px] p-8 shadow-soft flex flex-col items-center justify-center text-center max-w-xl mx-auto space-y-4">
               <div className="p-3 rounded-full bg-red-50 text-brand-red">
                 <AlertCircle className="w-8 h-8" />
