@@ -49,37 +49,49 @@ export const getRepositoryOverview = async (owner, repo) => {
   };
 };
 
+const getCountFromAPI = async (url, params = {}) => {
+  try {
+    const response = await githubClient.get(url, {
+      params: { ...params, per_page: 1 }
+    });
+    const linkHeader = response.headers['link'];
+    if (!linkHeader) {
+      return response.data.length;
+    }
+    const match = linkHeader.match(/[?&]page=(\d+)>; rel="last"/);
+    return match ? parseInt(match[1], 10) : 1;
+  } catch (error) {
+    return 0;
+  }
+};
+
 export const getPrsAndIssuesStats = async (owner, repo) => {
-  let prs = [];
+  // 1. Fetch exact total/open counts using pagination link header
+  const totalPrsCount = await getCountFromAPI(`/repos/${owner}/${repo}/pulls`, { state: 'all' });
+  const openPrsCount = await getCountFromAPI(`/repos/${owner}/${repo}/pulls`, { state: 'open' });
+  const closedPrsCount = totalPrsCount - openPrsCount;
+
+  const totalIssuesAndPrs = await getCountFromAPI(`/repos/${owner}/${repo}/issues`, { state: 'all' });
+  const openIssuesAndPrs = await getCountFromAPI(`/repos/${owner}/${repo}/issues`, { state: 'open' });
+
+  const totalIssuesCount = Math.max(0, totalIssuesAndPrs - totalPrsCount);
+  const openIssuesCount = Math.max(0, openIssuesAndPrs - openPrsCount);
+  const closedIssuesCount = Math.max(0, totalIssuesCount - openIssuesCount);
+
+  // 2. Fetch the 100 most recent closed PRs to calculate representative merge time
+  let closedPrsData = [];
   try {
     const prRes = await githubClient.get(`/repos/${owner}/${repo}/pulls`, {
-      params: { state: 'all', per_page: 50 }
+      params: { state: 'closed', per_page: 100 }
     });
-    prs = prRes.data;
+    closedPrsData = prRes.data || [];
   } catch (error) {
-    prs = [];
+    closedPrsData = [];
   }
-
-  let issues = [];
-  try {
-    const issueRes = await githubClient.get(`/repos/${owner}/${repo}/issues`, {
-      params: { state: 'all', per_page: 50 }
-    });
-    issues = issueRes.data.filter(item => !item.pull_request);
-  } catch (error) {
-    issues = [];
-  }
-
-  // PR Calculations
-  const totalPrsCount = prs.length;
-  const openPrsCount = prs.filter(p => p.state === 'open').length;
-  const closedPrs = prs.filter(p => p.state === 'closed');
-  const closedPrsCount = closedPrs.length;
 
   let totalMergeTimeHours = 0;
   let mergedPrsCount = 0;
-
-  closedPrs.forEach(p => {
+  closedPrsData.forEach(p => {
     if (p.closed_at) {
       const created = new Date(p.created_at);
       const closed = new Date(p.closed_at);
@@ -88,18 +100,22 @@ export const getPrsAndIssuesStats = async (owner, repo) => {
       mergedPrsCount++;
     }
   });
-
   const avgMergeTimeHours = mergedPrsCount > 0 ? parseFloat((totalMergeTimeHours / mergedPrsCount).toFixed(1)) : null;
 
-  // Issues Calculations
-  const openIssuesCount = issues.filter(i => i.state === 'open').length;
-  const closedIssues = issues.filter(i => i.state === 'closed');
-  const closedIssuesCount = closedIssues.length;
+  // 3. Fetch the 100 most recent closed Issues to calculate representative resolution time
+  let closedIssuesData = [];
+  try {
+    const issueRes = await githubClient.get(`/repos/${owner}/${repo}/issues`, {
+      params: { state: 'closed', per_page: 100 }
+    });
+    closedIssuesData = (issueRes.data || []).filter(item => !item.pull_request);
+  } catch (error) {
+    closedIssuesData = [];
+  }
 
   let totalResolutionTimeHours = 0;
   let resolvedIssuesCount = 0;
-
-  closedIssues.forEach(i => {
+  closedIssuesData.forEach(i => {
     if (i.closed_at) {
       const created = new Date(i.created_at);
       const closed = new Date(i.closed_at);
@@ -108,15 +124,24 @@ export const getPrsAndIssuesStats = async (owner, repo) => {
       resolvedIssuesCount++;
     }
   });
-
   const avgResolutionTimeHours = resolvedIssuesCount > 0 ? parseFloat((totalResolutionTimeHours / resolvedIssuesCount).toFixed(1)) : null;
 
-  // Stale Issues (no updates in 60 days)
+  // 4. Fetch the 50 oldest open issues to check for stale items (no updates in 60 days)
+  let oldestOpenIssues = [];
+  try {
+    const staleRes = await githubClient.get(`/repos/${owner}/${repo}/issues`, {
+      params: { state: 'open', sort: 'updated', direction: 'asc', per_page: 50 }
+    });
+    oldestOpenIssues = (staleRes.data || []).filter(item => !item.pull_request);
+  } catch (error) {
+    oldestOpenIssues = [];
+  }
+
   const sixtyDaysAgo = new Date();
   sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
 
-  const staleIssues = issues
-    .filter(i => i.state === 'open' && new Date(i.updated_at) < sixtyDaysAgo)
+  const staleList = oldestOpenIssues
+    .filter(i => new Date(i.updated_at) < sixtyDaysAgo)
     .map(i => ({
       number: i.number,
       title: i.title,
@@ -124,6 +149,28 @@ export const getPrsAndIssuesStats = async (owner, repo) => {
       updatedAt: i.updated_at,
       comments: i.comments
     }));
+  const staleCount = staleList.length;
+
+  // 5. Fetch the 10 most recent PRs and Issues to display on lists
+  let recentPrs = [];
+  try {
+    const recentPrRes = await githubClient.get(`/repos/${owner}/${repo}/pulls`, {
+      params: { state: 'all', per_page: 10 }
+    });
+    recentPrs = recentPrRes.data || [];
+  } catch (error) {
+    recentPrs = [];
+  }
+
+  let recentIssues = [];
+  try {
+    const recentIssueRes = await githubClient.get(`/repos/${owner}/${repo}/issues`, {
+      params: { state: 'all', per_page: 20 }
+    });
+    recentIssues = (recentIssueRes.data || []).filter(item => !item.pull_request).slice(0, 10);
+  } catch (error) {
+    recentIssues = [];
+  }
 
   return {
     prs: {
@@ -131,7 +178,7 @@ export const getPrsAndIssuesStats = async (owner, repo) => {
       open: openPrsCount,
       closed: closedPrsCount,
       avgMergeTimeHours,
-      recent: prs.slice(0, 10).map(p => ({
+      recent: recentPrs.map(p => ({
         number: p.number,
         title: p.title,
         state: p.state,
@@ -139,19 +186,19 @@ export const getPrsAndIssuesStats = async (owner, repo) => {
         createdAt: p.created_at,
         closedAt: p.closed_at,
         user: {
-          login: p.user.login,
-          avatar_url: p.user.avatar_url
+          login: p.user?.login || 'unknown',
+          avatar_url: p.user?.avatar_url || null
         }
       }))
     },
     issues: {
-      total: issues.length,
+      total: totalIssuesCount,
       open: openIssuesCount,
       closed: closedIssuesCount,
       avgResolutionTimeHours,
-      staleCount: staleIssues.length,
-      staleList: staleIssues,
-      recent: issues.slice(0, 10).map(i => ({
+      staleCount,
+      staleList,
+      recent: recentIssues.map(i => ({
         number: i.number,
         title: i.title,
         state: i.state,
@@ -159,8 +206,8 @@ export const getPrsAndIssuesStats = async (owner, repo) => {
         createdAt: i.created_at,
         closedAt: i.closed_at,
         user: {
-          login: i.user.login,
-          avatar_url: i.user.avatar_url
+          login: i.user?.login || 'unknown',
+          avatar_url: i.user?.avatar_url || null
         }
       }))
     }
