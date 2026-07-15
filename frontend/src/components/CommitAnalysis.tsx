@@ -24,17 +24,22 @@ export const CommitAnalysis: React.FC<Props> = ({ data }) => {
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
-  // Group commits by Day of the Week based on recent commits history
+  // Group commits by Day of the Week based on the last 30 calendar days
   const getDayOfWeekData = () => {
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const counts = { Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0, Sat: 0, Sun: 0 };
     
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
     data.recentCommits.forEach(c => {
       if (c.date) {
         const d = new Date(c.date);
-        const dayName = days[d.getDay()] as keyof typeof counts;
-        if (counts[dayName] !== undefined) {
-          counts[dayName]++;
+        if (d >= thirtyDaysAgo) {
+          const dayName = days[d.getDay()] as keyof typeof counts;
+          if (counts[dayName] !== undefined) {
+            counts[dayName]++;
+          }
         }
       }
     });
@@ -45,7 +50,7 @@ export const CommitAnalysis: React.FC<Props> = ({ data }) => {
       { name: 'Wed', commits: counts.Wed },
       { name: 'Thu', commits: counts.Thu },
       { name: 'Fri', commits: counts.Fri },
-      { name: 'Sat', counts: counts.Sat, commits: counts.Sat }, // supporting both keys just in case
+      { name: 'Sat', commits: counts.Sat },
       { name: 'Sun', commits: counts.Sun },
     ];
   };

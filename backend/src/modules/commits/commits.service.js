@@ -99,8 +99,8 @@ export const getCommitStats = async (owner, repo) => {
     html_url: c.html_url
   }));
 
-  // 6. Build commit activity graph (commits per day for the last 30 days from the latest commit)
-  const baseDate = lastCommitDate ? new Date(lastCommitDate) : new Date();
+  // 6. Build commit activity graph (commits per day for the last 30 calendar days leading to today)
+  const baseDate = new Date();
   const activityMap = {};
   for (let i = 29; i >= 0; i--) {
     const d = new Date(baseDate.getTime());

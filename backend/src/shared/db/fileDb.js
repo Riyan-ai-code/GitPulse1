@@ -1,5 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
+import axios from 'axios';
+import { authLocalStorage } from '../context/authContext.js';
 dotenv.config();
 
 // Configured for Supabase Cloud Database storage
@@ -15,6 +17,30 @@ if (!isSupabaseConfigured) {
 }
 
 const supabase = isSupabaseConfigured ? createClient(supabaseUrl, supabaseKey) : null;
+
+const tokenUserCache = new Map();
+
+const getUsernameFromToken = async (token) => {
+  if (!token) return 'anonymous';
+  if (tokenUserCache.has(token)) {
+    return tokenUserCache.get(token);
+  }
+  try {
+    const response = await axios.get('https://api.github.com/user', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.github+json',
+        'User-Agent': 'GitPulse-Backend'
+      }
+    });
+    const username = response.data.login.toLowerCase();
+    tokenUserCache.set(token, username);
+    return username;
+  } catch (err) {
+    console.error('[SupabaseHistory] Error fetching username from GitHub token:', err.message);
+    return 'anonymous';
+  }
+};
 
 /**
  * 1. getCache(key)
@@ -93,7 +119,10 @@ export const logAudit = async (owner, repo, score, stars, forks, language, versi
   try {
     if (!supabase) return;
     
-    const ownerKey = owner.toLowerCase();
+    const token = authLocalStorage.getStore();
+    const username = await getUsernameFromToken(token);
+    
+    const ownerKey = `${username}:${owner.toLowerCase()}`;
     const repoKey = repo.toLowerCase();
     
     const { error } = await supabase
@@ -125,9 +154,13 @@ export const getHistory = async () => {
   try {
     if (!supabase) return [];
     
+    const token = authLocalStorage.getStore();
+    const username = await getUsernameFromToken(token);
+    
     const { data, error } = await supabase
       .from('history')
       .select('*')
+      .like('owner', `${username}:%`)
       .order('analyzed_at', { ascending: false })
       .limit(30);
       
@@ -136,17 +169,21 @@ export const getHistory = async () => {
       return [];
     }
     
-    // Map fields back to frontend camelCase expectations
-    return data.map(item => ({
-      owner: item.owner,
-      repo: item.repo,
-      score: item.score,
-      stars: item.stars,
-      forks: item.forks,
-      primaryLanguage: item.primary_language,
-      version: item.version,
-      analyzedAt: item.analyzed_at
-    }));
+    // Map fields back to frontend camelCase expectations, stripping username prefix
+    return data.map(item => {
+      const parts = item.owner.split(':');
+      const actualOwner = parts.length > 1 ? parts.slice(1).join(':') : item.owner;
+      return {
+        owner: actualOwner,
+        repo: item.repo,
+        score: item.score,
+        stars: item.stars,
+        forks: item.forks,
+        primaryLanguage: item.primary_language,
+        version: item.version,
+        analyzedAt: item.analyzed_at
+      };
+    });
   } catch (err) {
     console.error('[SupabaseHistory] Exception in getHistory:', err);
     return [];
@@ -161,7 +198,10 @@ export const deleteHistoryEntry = async (owner, repo) => {
   try {
     if (!supabase) return false;
     
-    const ownerKey = owner.toLowerCase();
+    const token = authLocalStorage.getStore();
+    const username = await getUsernameFromToken(token);
+    
+    const ownerKey = `${username}:${owner.toLowerCase()}`;
     const repoKey = repo.toLowerCase();
     
     const { error, status } = await supabase
