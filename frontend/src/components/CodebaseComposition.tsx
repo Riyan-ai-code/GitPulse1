@@ -555,37 +555,7 @@ export const CodebaseComposition: React.FC<Props> = ({ compositionData, dependen
                           </p>
                         </div>
 
-                        {incomingLinks.length > 0 && (
-                          <div className="border-t border-border-divider/50 pt-3">
-                            <span className="text-[11px] font-bold text-text-heading block mb-1.5">Imported By / Parent:</span>
-                            <div className="flex flex-wrap gap-1">
-                              {incomingLinks.map(link => {
-                                const sourceNode = nodesWithColumns.find(n => n.id === link.source);
-                                return (
-                                  <span key={link.source} className="text-[10px] bg-slate-100 dark:bg-bg-secondary px-2 py-0.5 rounded border border-border-divider/30 text-text-secondary font-semibold">
-                                    {sourceNode?.label || link.source}
-                                  </span>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        )}
-
-                        {outgoingLinks.length > 0 && (
-                          <div className="border-t border-border-divider/50 pt-3">
-                            <span className="text-[11px] font-bold text-text-heading block mb-1.5">Depends On / Subfolders:</span>
-                            <div className="flex flex-wrap gap-1">
-                              {outgoingLinks.map(link => {
-                                const targetNode = nodesWithColumns.find(n => n.id === link.target);
-                                return (
-                                  <span key={link.target} className="text-[10px] bg-indigo-50 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded border border-indigo-100 dark:border-indigo-900/10 font-semibold">
-                                    {targetNode?.label || link.target}
-                                  </span>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        )}
+                        {/* Connection lists removed to prevent layout clutter */}
                       </div>
                     );
                   })()
