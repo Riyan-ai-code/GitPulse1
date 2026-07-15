@@ -11,7 +11,7 @@ import {
   Layers,
   Network
 } from 'lucide-react';
-import { ReactFlow, Controls, Background, Node, Edge } from '@xyflow/react';
+import { ReactFlow, Controls, Background, Node, Edge, Handle, Position } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
 interface TreeNode {
@@ -30,11 +30,44 @@ interface Props {
   loading: boolean;
 }
 
+// Premium custom node component for React Flow with Left/Right handles
+const CustomNode = ({ data }: any) => {
+  const colBg = 
+    data.col === 0 ? 'bg-sky-50 dark:bg-sky-950/20 border-sky-300 dark:border-sky-800' : 
+    data.col === 1 ? 'bg-indigo-50 dark:bg-indigo-950/20 border-indigo-300 dark:border-indigo-850' : 
+    'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-300 dark:border-emerald-850';
+  const colText = 
+    data.col === 0 ? 'text-sky-700 dark:text-sky-400' : 
+    data.col === 1 ? 'text-indigo-700 dark:text-indigo-400' : 
+    'text-emerald-700 dark:text-emerald-400';
+
+  return (
+    <div className={`px-3 py-2 border rounded-lg font-bold text-[11px] text-center w-[150px] shadow-sm relative ${colBg} ${colText}`}>
+      <Handle 
+        type="target" 
+        position={Position.Left} 
+        style={{ background: 'currentColor', width: 6, height: 6, borderRadius: '50%' }} 
+      />
+      <div className="truncate">{data.label}</div>
+      <Handle 
+        type="source" 
+        position={Position.Right} 
+        style={{ background: 'currentColor', width: 6, height: 6, borderRadius: '50%' }} 
+      />
+    </div>
+  );
+};
+
 export const CodebaseComposition: React.FC<Props> = ({ compositionData, dependencyGraph, loading }) => {
   const [subTab, setSubTab] = useState<'composition' | 'architecture'>('composition');
   const [currentPath, setCurrentPath] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [selectedArchNode, setSelectedArchNode] = useState<string | null>(null);
+
+  // Register custom React Flow node types
+  const nodeTypes = useMemo(() => ({
+    custom: CustomNode
+  }), []);
 
   // Format bytes to KB, MB, etc.
   const formatSize = (bytes: number) => {
@@ -148,26 +181,11 @@ export const CodebaseComposition: React.FC<Props> = ({ compositionData, dependen
       const x = node.col * 240 + 30;
       const y = ySpacing > 0 ? colIndex * ySpacing + yStart : yStart;
 
-      // Color scheme based on column role
-      const colBg = node.col === 0 ? '#f0f9ff' : node.col === 1 ? '#e0e7ff' : '#ecfdf5';
-      const colText = node.col === 0 ? '#0369a1' : node.col === 1 ? '#4338ca' : '#047857';
-
       return {
         id: node.id,
+        type: 'custom',
         position: { x, y },
-        data: { label: node.label },
-        style: {
-          background: colBg,
-          color: colText,
-          border: `1px solid ${colText}`,
-          borderRadius: '10px',
-          fontWeight: 'bold',
-          fontSize: '11px',
-          padding: '8px 12px',
-          width: '150px',
-          textAlign: 'center' as const,
-          boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-        }
+        data: { label: node.label, col: node.col }
       };
     });
 
@@ -175,12 +193,13 @@ export const CodebaseComposition: React.FC<Props> = ({ compositionData, dependen
       id: `e-${idx}`,
       source: link.source,
       target: link.target,
+      type: 'smoothstep',
       animated: true,
       style: { stroke: '#818cf8', strokeWidth: 2 },
     }));
 
     return { nodes: flowNodes, edges: flowEdges };
-  }, [dependencyGraph, nodesWithColumns]);
+  }, [dependencyGraph, nodesWithColumns, maxNodesInCol]);
 
   // Set default selected node
   useEffect(() => {
@@ -489,6 +508,7 @@ export const CodebaseComposition: React.FC<Props> = ({ compositionData, dependen
                   <ReactFlow
                     nodes={flowData.nodes}
                     edges={flowData.edges}
+                    nodeTypes={nodeTypes}
                     onNodeClick={(_, node) => setSelectedArchNode(node.id)}
                     zoomOnScroll={false}
                     panOnDrag={true}
