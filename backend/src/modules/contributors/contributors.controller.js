@@ -2,7 +2,7 @@ import * as contributorsService from './contributors.service.js';
 import * as fileDb from '../../shared/db/fileDb.js';
 
 export const getContributors = async (req, res, next) => {
-  const { owner, repo } = req.query;
+  const { owner, repo, force } = req.query;
 
   if (!owner || !repo) {
     return res.status(400).json({
@@ -12,9 +12,13 @@ export const getContributors = async (req, res, next) => {
   }
 
   const cacheKey = `contributors:${owner.toLowerCase()}/${repo.toLowerCase()}`;
-  const cachedData = await fileDb.getCache(cacheKey);
-  if (cachedData) {
-    return res.json(cachedData);
+
+  // Skip cache when force=true to always return fresh data
+  if (force !== 'true') {
+    const cachedData = await fileDb.getCache(cacheKey);
+    if (cachedData) {
+      return res.json(cachedData);
+    }
   }
 
   try {

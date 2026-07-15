@@ -2,7 +2,7 @@ import * as repositoryService from './repository.service.js';
 import * as fileDb from '../../shared/db/fileDb.js';
 
 export const getOverview = async (req, res, next) => {
-  const { owner, repo } = req.query;
+  const { owner, repo, force } = req.query;
 
   if (!owner || !repo) {
     return res.status(400).json({
@@ -12,9 +12,13 @@ export const getOverview = async (req, res, next) => {
   }
 
   const cacheKey = `overview:${owner.toLowerCase()}/${repo.toLowerCase()}`;
-  const cachedData = await fileDb.getCache(cacheKey);
-  if (cachedData) {
-    return res.json(cachedData);
+
+  // Skip cache when force=true to always return fresh data
+  if (force !== 'true') {
+    const cachedData = await fileDb.getCache(cacheKey);
+    if (cachedData) {
+      return res.json(cachedData);
+    }
   }
 
   try {
@@ -27,7 +31,7 @@ export const getOverview = async (req, res, next) => {
 };
 
 export const getPrsIssues = async (req, res, next) => {
-  const { owner, repo } = req.query;
+  const { owner, repo, force } = req.query;
 
   if (!owner || !repo) {
     return res.status(400).json({
@@ -37,9 +41,13 @@ export const getPrsIssues = async (req, res, next) => {
   }
 
   const cacheKey = `prs-issues:${owner.toLowerCase()}/${repo.toLowerCase()}`;
-  const cachedData = await fileDb.getCache(cacheKey);
-  if (cachedData) {
-    return res.json(cachedData);
+
+  // Skip cache when force=true to always return fresh data
+  if (force !== 'true') {
+    const cachedData = await fileDb.getCache(cacheKey);
+    if (cachedData) {
+      return res.json(cachedData);
+    }
   }
 
   try {
@@ -87,7 +95,7 @@ export const deleteAnalysis = async (req, res, next) => {
 };
 
 export const getComposition = async (req, res, next) => {
-  const { owner, repo } = req.query;
+  const { owner, repo, force } = req.query;
 
   if (!owner || !repo) {
     return res.status(400).json({
@@ -97,9 +105,13 @@ export const getComposition = async (req, res, next) => {
   }
 
   const cacheKey = `composition:${owner.toLowerCase()}/${repo.toLowerCase()}`;
-  const cachedData = await fileDb.getCache(cacheKey);
-  if (cachedData) {
-    return res.json(cachedData);
+
+  // Skip cache when force=true to always return fresh data
+  if (force !== 'true') {
+    const cachedData = await fileDb.getCache(cacheKey);
+    if (cachedData) {
+      return res.json(cachedData);
+    }
   }
 
   try {

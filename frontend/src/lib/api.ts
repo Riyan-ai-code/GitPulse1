@@ -19,35 +19,35 @@ const handleResponse = async (response: Response) => {
 export { API_BASE_URL };
 
 export const fetchRepositoryOverview = async (owner: string, repo: string): Promise<RepositoryOverview> => {
-  const response = await fetch(`${API_BASE_URL}/repository?owner=${encodeURIComponent(owner)}&repo=${encodeURIComponent(repo)}`, {
+  const response = await fetch(`${API_BASE_URL}/repository?owner=${encodeURIComponent(owner)}&repo=${encodeURIComponent(repo)}&force=true`, {
     credentials: 'include'
   });
   return handleResponse(response);
 };
 
 export const fetchCommitStats = async (owner: string, repo: string): Promise<CommitStats> => {
-  const response = await fetch(`${API_BASE_URL}/commits?owner=${encodeURIComponent(owner)}&repo=${encodeURIComponent(repo)}`, {
+  const response = await fetch(`${API_BASE_URL}/commits?owner=${encodeURIComponent(owner)}&repo=${encodeURIComponent(repo)}&force=true`, {
     credentials: 'include'
   });
   return handleResponse(response);
 };
 
 export const fetchContributors = async (owner: string, repo: string): Promise<ContributorsList> => {
-  const response = await fetch(`${API_BASE_URL}/contributors?owner=${encodeURIComponent(owner)}&repo=${encodeURIComponent(repo)}`, {
+  const response = await fetch(`${API_BASE_URL}/contributors?owner=${encodeURIComponent(owner)}&repo=${encodeURIComponent(repo)}&force=true`, {
     credentials: 'include'
   });
   return handleResponse(response);
 };
 
 export const fetchAnalysis = async (owner: string, repo: string, skipHistory: boolean = false): Promise<RepositoryAnalysis> => {
-  const response = await fetch(`${API_BASE_URL}/analysis?owner=${encodeURIComponent(owner)}&repo=${encodeURIComponent(repo)}&skipHistory=${skipHistory}`, {
+  const response = await fetch(`${API_BASE_URL}/analysis?owner=${encodeURIComponent(owner)}&repo=${encodeURIComponent(repo)}&skipHistory=${skipHistory}&force=true`, {
     credentials: 'include'
   });
   return handleResponse(response);
 };
 
 export const fetchPrsAndIssues = async (owner: string, repo: string): Promise<any> => {
-  const response = await fetch(`${API_BASE_URL}/repository/prs-issues?owner=${encodeURIComponent(owner)}&repo=${encodeURIComponent(repo)}`, {
+  const response = await fetch(`${API_BASE_URL}/repository/prs-issues?owner=${encodeURIComponent(owner)}&repo=${encodeURIComponent(repo)}&force=true`, {
     credentials: 'include'
   });
   return handleResponse(response);
@@ -70,7 +70,7 @@ export const deleteRepoAnalysis = async (owner: string, repo: string): Promise<a
 };
 
 export const fetchCodebaseComposition = async (owner: string, repo: string): Promise<any> => {
-  const response = await fetch(`${API_BASE_URL}/repository/composition?owner=${encodeURIComponent(owner)}&repo=${encodeURIComponent(repo)}`, {
+  const response = await fetch(`${API_BASE_URL}/repository/composition?owner=${encodeURIComponent(owner)}&repo=${encodeURIComponent(repo)}&force=true`, {
     credentials: 'include'
   });
   return handleResponse(response);
