@@ -1048,7 +1048,6 @@ export default function Dashboard() {
                 <div className="space-y-6 animate-fadeIn">
                   <CodebaseComposition 
                     compositionData={composition} 
-                    dependencyGraph={analysis?.dependencyGraph || null}
                     loading={loadingComposition} 
                   />
                 </div>
